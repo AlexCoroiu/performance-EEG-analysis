@@ -6,8 +6,8 @@ import numpy as np
 #run variables
 
 #simulation
-DATA_DIR = "data_amp42"
-AMP = (40,20)
+DATA_DIR = "data_amp63"
+AMP = (60,30)
 
 #constants
 
@@ -150,6 +150,7 @@ AMPLITUDE_VAR_DIST = (0,2.5)
 #175ms +/- 50*ms (contralateral) wiht the shift from the function - 0.1
 LATENCY = 0.175
 
+#latency +/- 50 ms
 LATENCY_VAR_PART_DIST = (0, 0.025) #mean latency
 LATENCY_VAR_DIST = (0,0.025) 
 #main peak N1 towards P2 transition

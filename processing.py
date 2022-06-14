@@ -125,7 +125,7 @@ def load_epo_concat_df():
     dataset = c.DATA_DIR
     
     dataframe_file = dataset + '\\epo_dataframe' + '.csv'
-    epo_dataframe = pd.read_csv(dataframe_file, index = False)
+    epo_dataframe = pd.read_csv(dataframe_file)
     
     return epo_dataframe
     
@@ -339,8 +339,7 @@ def load_data_points(dataframe):
     
     return dps
     
-
-#%%PROCESSING
+#DATA PROCESSING
 
 def process():
     raws = load_raws()

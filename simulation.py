@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 #GENERATIOAN VARIABLES
-event_latencies = []
-event_amplitudes = []
+generated_latencies = []
+generated_amplitudes = []
 
 #SIMULATION FUNCTIONS
 def simulate_wave(times, latency, duration, f_band):
@@ -96,26 +96,27 @@ def simulate_data(part_nr, part_latency_var, part_amplitude_var):
                                              tstep = c.TSTEP)
     
     for event in c.EVENTS:
-        event_id = c.EVENT_NRS[event[2]]
-        if event_id == 'baseline':
+        event_id = event[2]
+        condition = c.EVENT_NRS[event_id]
+        if condition == 'baseline':
             simulate_base([event], src_sim, c.F_BAND)
         else:
             #signal vairables
             #latency
             event_latency_var = random.gauss(c.LATENCY_VAR_DIST[0],
-                                                 c.LATENCY_VAR_DIST[1])
+                                             c.LATENCY_VAR_DIST[1])
             latency_var = part_latency_var + event_latency_var
             
-            event_latencies.append([part_nr, event_id, latency_var])
+            generated_latencies.append([part_nr, condition, latency_var])
         
             #amplitude
             event_amplitude_var = random.gauss(c.AMPLITUDE_VAR_DIST[0],
                                                c.AMPLITUDE_VAR_DIST[1])
             amplitude_var = part_amplitude_var + event_amplitude_var
             
-            event_amplitudes.append([part_nr, event_id, amplitude_var])
+            generated_amplitudes.append([part_nr, condition, amplitude_var])
             
-            simulate_activation(event_id, [event], src_sim, 
+            simulate_activation(condition, [event], src_sim, 
                                 latency_var, ipsilateral_delay,
                                 duration,
                                 amplitude_var,
@@ -141,17 +142,17 @@ def save_generated_variables():
     dataset = c.DATA_DIR
     
     #latency
-    latency_df = pd.DataFrame(data = event_latencies, 
-                              columns = ['part', 'event', 'event_latency'])
+    latency_df = pd.DataFrame(data = generated_latencies, 
+                              columns = ['part', 'condition', 'latency'])
     dataframe_file = dataset + '\\latencies' + '.csv'
-    latency_df.to_csv(dataframe_file)
+    latency_df.to_csv(dataframe_file, index = False)
 
-    amplitude_df = pd.DataFrame(data = event_amplitudes,
-                                columns = ['part', 'event', 'event_amplitude'])
+    amplitude_df = pd.DataFrame(data = generated_amplitudes,
+                                columns = ['part', 'condition', 'amplitude'])
     dataframe_file = dataset + '\\amplitudes' + '.csv'
-    amplitude_df.to_csv(dataframe_file)
+    amplitude_df.to_csv(dataframe_file, index = False)
 
-#SIMULATE
+#DATA SIMULATE
 def simulate():
     dataset = c.DATA_DIR
     if not os.path.exists(dataset):

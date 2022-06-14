@@ -1,14 +1,85 @@
 # -*- coding: utf-8 -*-
 
 
-#%%setup
+#%% setup
 import mne
 import constants as c
 import numpy as np
 import pandas as pd
-import processing
+import seaborn as sb
+import matplotlib.pyplot as plt
+
+#%% GENERATION statistics: amplitude & latency
+
+#open files
+def load_generation_statistics():
+    dataset = c.DATA_DIR
+    
+    dataframe_file = dataset + '\\amplitudes' + '.csv'
+    amplitudes = pd.read_csv(dataframe_file)
+    
+    dataframe_file = dataset + '\\latencies' + '.csv'
+    latencies = pd.read_csv(dataframe_file)
+    
+    return amplitudes, latencies
+
+amplitudes, latencies = load_generation_statistics()
+
+def generation_statistics():
+    print(amplitudes.head(5))
+    print(latencies.head(5))
+
+    #population level
+    print(amplitudes['amplitude'].describe())
+    print(latencies['latency'].describe())
+    
+    #condition level
+    print(amplitudes.groupby('condition')['amplitude'].describe())
+    print(latencies.groupby('condition')['latency'].describe())
+    
+    #participant level
+    print(amplitudes.groupby('part')['amplitude'].describe())
+    print(latencies.groupby('part')['latency'].describe())
+    
+#generation_statistics()
+    
+def generation_vizualization():
+    #density plots condition
+    sb.displot(latencies, x = 'latency', row = 'condition')
+    plt.show()
+    sb.displot(amplitudes, x = 'amplitude', row = 'condition')
+    plt.show()
+    
+    #violin plots participant
+    sb.violinplot(data = amplitudes,
+                  x = 'part', y = 'amplitude')
+    plt.show()
+    
+    sb.violinplot(data = latencies,
+             x = 'part', y = 'latency')
+    plt.show()
+    
+    
+    #violin plots condition x participant
+    plot = sb.FacetGrid(amplitudes, row = 'condition')
+    plot.map(sb.violinplot,
+             data = amplitudes,
+             x = 'part', y = 'amplitude')
+    plt.show()
+    
+    plot = sb.FacetGrid(latencies, row = 'condition')
+    plot.map(sb.violinplot,
+             data = latencies,
+             x = 'part', y = 'latency')
+    plt.show()
+    
+generation_vizualization()
+    
 
 #%% LOAD DATA
+
+import processing
+
 #raws
 raws = processing.load_raws()
 
@@ -40,7 +111,23 @@ avg_evo = processing.load_avg_evo()
 #df pop
 avg_df = processing.load_avg_df()
 
-#%%VIZUALIZATION HELPERS
+#%%DATAFRAME statistics
+
+#population level 
+
+#participant level
+
+
+#-------------------------------------------
+
+
+
+
+#---------------------------------------------
+
+#%%VISUALZIE
+
+#VIZUALIZATION HELPERS
 
 #sphere for topographies
 def make_top_sphere(epoched): #digital montage for each participant
@@ -61,9 +148,7 @@ sphere = make_top_sphere(concat_epos)
 #times
 PLOT_TIMES = np.arange(0.08, 0.28, 0.04)
 
-#%%VISUALZIE
-
-def pop_level():
+def mne_pop_level():
     concat_epos.plot_psd()
     #epoched.plot_psd_topomap()
     
@@ -98,7 +183,7 @@ def pop_level():
 
 #VIZUALIZE participant level
 
-def part_level():
+def mne_part_level():
     i = 0 #part nr. 1
     
     raws[i].pick(picks = c.CHANNELS_OCCIPITAL).plot(duration = 2)
@@ -134,15 +219,8 @@ def part_level():
                              legend='upper left', 
                              show_sensors='upper right')
 
-#DATAFRAME statistics
-
-#population level 
-
-#participant level
-
-
-pop_level()
-part_level()
+# mne_pop_level()
+# mne_part_level()
     
     
     
