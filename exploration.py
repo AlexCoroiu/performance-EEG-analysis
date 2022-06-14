@@ -4,6 +4,7 @@
 #%% setup
 import mne
 import constants as c
+import simulation as sim
 import numpy as np
 import pandas as pd
 import seaborn as sb
@@ -12,18 +13,7 @@ import matplotlib.pyplot as plt
 #%% GENERATION statistics: amplitude & latency
 
 #open files
-def load_generation_statistics():
-    dataset = c.DATA_DIR
-    
-    dataframe_file = dataset + '\\amplitudes' + '.csv'
-    amplitudes = pd.read_csv(dataframe_file)
-    
-    dataframe_file = dataset + '\\latencies' + '.csv'
-    latencies = pd.read_csv(dataframe_file)
-    
-    return amplitudes, latencies
-
-amplitudes, latencies = load_generation_statistics()
+latencies, amplitudes = sim.load_generated_variables()
 
 def generation_statistics():
     print(amplitudes.head(5))

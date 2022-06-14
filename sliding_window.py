@@ -11,7 +11,7 @@ import constants as c
 import numpy as np
 import math
 import pandas as pd
-import processing
+import processing as pross
 from scipy import stats
 import os
 
@@ -187,8 +187,8 @@ def slide_window(matrix):
 
 def analyse():
     #load
-    dataframe = processing.load_evo_concat_df()
-    dps = processing.load_data_points(dataframe)
+    dataframe = pross.load_evo_concat_df()
+    dps = pross.load_data_points(dataframe)
     
     #analyze
     create_ttest_results(dps)

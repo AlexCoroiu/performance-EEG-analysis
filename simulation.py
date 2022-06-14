@@ -1,10 +1,9 @@
 import numpy as np
 import mne
 import random
-import os
 import constants as c
-import matplotlib.pyplot as plt
 import pandas as pd
+import data_manager as dtm
 
 #GENERATIOAN VARIABLES
 generated_latencies = []
@@ -39,29 +38,18 @@ def simulate_wave(times, latency, duration, f_band):
 
 #test = simulate_wave(c.TIMES, 0.175, 0.2, 10)
 
-def simulate_base(event, src_sim, f_band):
-    label = mne.read_labels_from_annot(c.SUBJECT, 
-                                       c.ANNOTATION,
-                                       subjects_dir = c.SUBJECTS_DIR,
-                                       regexp = c.BASE_REGION,
-                                       verbose = False)[0]
-    waveform = simulate_wave(c.TIMES, c.BASE_LATENCY, c.BASE_DURATION, 
-                             f_band)
+def simulate_base(event, src_sim):
+    waveform = simulate_wave(c.TIMES, c.BASE_LATENCY, 
+                             c.BASE_DURATION, c.F_BAND)
 
-    src_sim.add_data(label,
+    src_sim.add_data(c.BASE_LABEL,
                      c.BASE_AMPLITUDE*waveform,
                      event)
     
-def simulate_activation(event_id, event, src_sim, 
-                        latency_var, ipsilateral_delay, duration, amplitude_var,
-                        f_band):
+def simulate_activation(event_id, event, src_sim, latency_var, amplitude_var):
     for hemi in range(2):
         region = c.ACTIVATIONS[event_id][hemi][0]
-        label = mne.read_labels_from_annot(c.SUBJECT, 
-                                           c.ANNOTATION,
-                                           subjects_dir = c.SUBJECTS_DIR,
-                                           regexp = region,
-                                           verbose = False)[0]
+        label = c.LABELS[region]
         
         #latency
         stimuli_side = event_id.split('_')[1][0]
@@ -70,10 +58,10 @@ def simulate_activation(event_id, event, src_sim,
         hemi_latency = c.LATENCY + latency_var
         
         if stimuli_side == hemi_side: #ipsilateral            
-            hemi_latency = hemi_latency + ipsilateral_delay
+            hemi_latency = hemi_latency + c.IPSILATERAL_DELAY
 
         #simualte wave
-        waveform = simulate_wave(c.TIMES, hemi_latency, duration, f_band)
+        waveform = simulate_wave(c.TIMES, hemi_latency, c.DURATION, c.F_BAND)
             
         #amplitude
         hemi_amplitude = c.ACTIVATIONS[event_id][hemi][1] + amplitude_var
@@ -88,8 +76,6 @@ def simulate_activation(event_id, event, src_sim,
 def simulate_data(part_nr, part_latency_var, part_amplitude_var):
     
     #SIGNAL
-    ipsilateral_delay = c.IPSILATERAL_DELAY
-    duration = c.DURATION
     
     #events data - new one for each participant
     src_sim = mne.simulation.SourceSimulator(src = c.SRC, 
@@ -99,7 +85,7 @@ def simulate_data(part_nr, part_latency_var, part_amplitude_var):
         event_id = event[2]
         condition = c.EVENT_NRS[event_id]
         if condition == 'baseline':
-            simulate_base([event], src_sim, c.F_BAND)
+            simulate_base([event], src_sim)
         else:
             #signal vairables
             #latency
@@ -117,10 +103,7 @@ def simulate_data(part_nr, part_latency_var, part_amplitude_var):
             generated_amplitudes.append([part_nr, condition, amplitude_var])
             
             simulate_activation(condition, [event], src_sim, 
-                                latency_var, ipsilateral_delay,
-                                duration,
-                                amplitude_var,
-                                c.F_BAND)
+                                latency_var, amplitude_var)
     
     #add data
     raw_sim = mne.simulation.simulate_raw(c.INFO, 
@@ -139,9 +122,8 @@ def simulate_data(part_nr, part_latency_var, part_amplitude_var):
     return raw_sim
 
 def save_generated_variables():
-    dataset = c.DATA_DIR
-    
-    #latency
+    dataset = c.SIMULATION_DIR
+
     latency_df = pd.DataFrame(data = generated_latencies, 
                               columns = ['part', 'condition', 'latency'])
     dataframe_file = dataset + '\\latencies' + '.csv'
@@ -151,17 +133,27 @@ def save_generated_variables():
                                 columns = ['part', 'condition', 'amplitude'])
     dataframe_file = dataset + '\\amplitudes' + '.csv'
     amplitude_df.to_csv(dataframe_file, index = False)
+    
+def load_generated_variables():
+    dataset = c.SIMULATION_DIR
+    
+    dataframe_file = dataset + '\\latencies' + '.csv'
+    latencies = pd.read_csv(dataframe_file)
+    
+    dataframe_file = dataset + '\\amplitudes' + '.csv'
+    amplitudes = pd.read_csv(dataframe_file)
+
+    return latencies, amplitudes
 
 #DATA SIMULATE
 def simulate():
-    dataset = c.DATA_DIR
-    if not os.path.exists(dataset):
-        os.mkdir(dataset)
+    dataset = dtm.SIMULATION_DIR
+    dtm.do_dir(dataset)
     
-    dataset = c.RAWS_DIR
-    if not os.path.exists(dataset):
-        os.mkdir(dataset)
+    dataset = dtm.RAWS_DIR
+    dtm.do_dir(dataset)
     
+    #simulate
     for p in range(c.NR_PARTICIPANTS):
         part_nr = p + 1
         part = "part" + str(part_nr)
@@ -176,6 +168,7 @@ def simulate():
         raw_file = dataset + '\\' + part + '_eeg.fif'
         raw.save(raw_file, overwrite = True)
     
+    #save simulation variables
     save_generated_variables()
     
 simulate()
