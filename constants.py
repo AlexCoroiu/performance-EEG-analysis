@@ -7,10 +7,9 @@ import data_manager as dtm
 # SIMULATION VARIABLES
 # Change these variables to generate data with different amplitude values
 
-AMP_CONTRA = 60 #mV
-AMP_IPSI = 30 #mV
+AMPLITUDE = (60,30) #mV (contra, ipsi)
 
-dtm.set_up('data_amp6030')
+dtm.set_up('data_amp' + str(AMPLITUDE[0]) + str(AMPLITUDE[1]))
 
 # DATA SIZE
 NR_PARTICIPANTS = 20
@@ -50,10 +49,16 @@ CHANNELS_31 = ['Fp1', 'Fpz', 'Fp2',
                 'P7', 'P3', 'Pz', 'P4', 'P8', 
                 'O1', 'Oz', 'O2']
 
+DENSITY = {86: CHANNELS_86,
+           64: CHANNELS_64,
+           31: CHANNELS_31}
+
 CHANNELS_VISUAL = ['P9', 'P7', 'P5', 'P3', 'P1', 'Pz', 'P2', 'P4', 'P6', 'P8', 'P10', 
                     'PO9', 'PO7', 'PO5', 'PO3', 'PO1', 'POz', 'PO2', 'PO4', 'PO6', 'PO8', 'PO10', 
                     'O1', 'Oz', 'O2', 
                     'O9', 'Iz', 'O10']
+
+LOCAL = [True, False] #only visual, or all
 
 # (total channels ∩ visual) to get visual channels for different densities
 
@@ -91,17 +96,17 @@ EVENTS = []
 
 time = 0 #start
 
-for i in range(0,NR_TRIALS):
-    EVENTS.append([time,0, EVENT_IDS['baseline']]) 
+for i in range(0,NR_TRIALS):    
+    EVENTS.append([time,0,1]) #baseline
     time = time + EVENT_DURATION
-    EVENTS.append([time,0, EVENT_IDS['vs_right']]) 
+    EVENTS.append([time,0,2]) #vs_right
     time = time + EVENT_DURATION
-    EVENTS.append([time,0, EVENT_IDS['baseline']])
+    EVENTS.append([time,0,1]) #baseline
     time = time + EVENT_DURATION
-    EVENTS.append([time,0, EVENT_IDS['vs_left']])
+    EVENTS.append([time,0,3]) #vs_left
     time = time + EVENT_DURATION
 
-EVENTS.append([time,0,1]) #baseline
+EVENTS.append([time,0,1]) #end with baseline
 
 # location
 
@@ -114,19 +119,19 @@ right_hemi = 'G_occipital_sup-rh'
 
 ACTIVATIONS = {
     'vs_right':
-        [(left_hemi, AMP_CONTRA), 
-         (right_hemi, AMP_IPSI)
+        [(left_hemi, AMPLITUDE[0]), 
+         (right_hemi, AMPLITUDE[1])
          ],
     'vs_left':
-        [(left_hemi, AMP_IPSI),
-         (right_hemi, AMP_CONTRA)
+        [(left_hemi, AMPLITUDE[1]),
+         (right_hemi, AMPLITUDE[0])
          ]
 }
 
 BASE_LABEL = dtm.do_label(ANNOTATION, BASE_REGION)
 
-VS_LABELS = {left_hemi : dtm.do_label(ANNOTATION, left_hemi),
-             right_hemi : dtm.do_label(ANNOTATION, right_hemi)} 
+VISUAL_LABELS = {left_hemi : dtm.do_label(ANNOTATION, left_hemi),
+                 right_hemi : dtm.do_label(ANNOTATION, right_hemi)} 
 
 # WAVEFORM
 
@@ -174,7 +179,6 @@ NOISE_COV = mne.make_ad_hoc_cov(info = INFO)
 NOISE_FILTER = (0.1,-0.1,0.02)
 
 # PROCESSING
-
 # band pass
 FILTER = (0.1, 30)
 
@@ -182,17 +186,16 @@ FILTER = (0.1, 30)
 T_MIN = -0.5
 T_MAX = 0.5
 
-BASELINE = (T_MIN, 0) #or None
+BASELINE = (T_MIN, 0) #or None (for baseline correction)
 
 # PREPARATION
-CONDITION_TIME = T_MAX - 0
-BASELINE_TIME = 0 - T_MIN
-TOTAL_TIME = T_MAX - T_MIN
+LATERALIZATION = 'difference'
+TEST_CONDITIONS = CONDITIONS + [LATERALIZATION] #4 total
 
 # ANALYSIS
 SIGNIFICANCE = 0.05
 
-# sliding window
+# sliding window (multiples of 4)
 TIME_WINDOW = 0.02 #20 ms
     
 

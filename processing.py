@@ -5,9 +5,10 @@ import constants as c
 import numpy as np
 import pandas as pd
 import os
+import data_manager as dtm
 
 def load_raws():
-    dataset = c.RAWS_DIR
+    dataset = dtm.RAWS_DIR
     raws = []
     
     for p in range(c.NR_PARTICIPANTS):
@@ -21,9 +22,8 @@ def load_raws():
     return raws
     
 def create_epos(raws):
-    dataset = c.EPOS_DIR
-    if not os.path.exists(dataset):
-        os.mkdir(dataset)
+    dataset = dtm.EPOS_DIR
+    dtm.do_dir(dataset)
     
     for p in range(c.NR_PARTICIPANTS):
         part = "part" + str(p + 1)
@@ -45,7 +45,7 @@ def create_epos(raws):
 
 
 def load_epos():
-    dataset = c.EPOS_DIR
+    dataset = dtm.EPOS_DIR
     epos = []
     
     for p in range(c.NR_PARTICIPANTS):
@@ -59,10 +59,8 @@ def load_epos():
 
     
 def create_evos(epos):
-    dataset = c.EVOS_DIR
-    
-    if not os.path.exists(dataset):
-        os.mkdir(dataset)
+    dataset = dtm.EVOS_DIR
+    dtm.do_dir(dataset)
     
     for p in range(c.NR_PARTICIPANTS):
         part = "part" + str(p + 1)
@@ -70,20 +68,16 @@ def create_evos(epos):
         
         evoked_part = []
           
-        for event in c.EVENT_NAMES:
-            
-            condition = epo_part[event]
-            
-            #evoked data
-            evoked = condition.average() #average or gfp
-            
-            evoked_part.append(evoked)
+        for cond in c.CONDITIONS:
+
+            evoked_cond = epo_part[cond].average() #average or gfp
+            evoked_part.append(evoked_cond)
         
         evoked_file = dataset + '\\' + part + '_ave.fif'
         mne.write_evokeds(evoked_file, evoked_part)
     
 def load_evos():
-    dataset = c.EVOS_DIR
+    dataset = dtm.EVOS_DIR
     evos = []
     
     for p in range(c.NR_PARTICIPANTS):
@@ -95,20 +89,17 @@ def load_evos():
         
     return evos
 
-def create_evo_dfs(evos):
+def create_evo_df(evos):
     # (part, condition, time, electrode, value)
-    dataset = c.EVO_DFS_DIR
+    dataset = dtm.PROCESSING_DIR
     
-    if not os.path.exists(dataset):
-        os.mkdir(dataset)
-    
+    evo_dfs = []
     
     for p in range(c.NR_PARTICIPANTS):
         nr = str(p + 1)
-        part = "part" + nr
         evo_part = evos[p]
         
-        dfs = []
+        part_dfs = []
         
         for evo in evo_part:
             
@@ -119,39 +110,20 @@ def create_evo_dfs(evos):
             columns = ['part', 'condition', 'time', 'channel', 'value']
             df = df[columns]
             
-            dfs.append(df)
+            part_dfs.append(df)
         
-        
-        dataframe = pd.concat(dfs, axis=0)
+        part_dataframe = pd.concat(part_dfs, axis=0)
         #print(dataframe.columns)
         
-        #save
-        dataframe_file = dataset + '\\' + part + '.csv'
-        dataframe.to_csv(dataframe_file)
-    
-def load_evo_dfs():
-    dataset = c.EVO_DFS_DIR
-    evo_dfs = []
-    
-    for p in range(c.NR_PARTICIPANTS):
-        part = "part" + str(p + 1)
+        evo_dfs.append(part_dataframe)
         
-        evo_df_file = dataset +  '\\' + part + '.csv'
-        evo_df_part = pd.read_csv(evo_df_file)
-        
-        evo_dfs.append(evo_df_part)
-    
-    return evo_dfs
-    
-def create_evo_concat_df(evo_dfs):
-    dataset = c.DATA_DIR
-    
     evo_dataframe = pd.concat(evo_dfs, axis=0)
     dataframe_file = dataset + '\\evo_concat_df' + '.csv'
     evo_dataframe.to_csv(dataframe_file, index = False)
     
-def load_evo_concat_df():
-    dataset = c.DATA_DIR
+
+def load_evo_df():
+    dataset = dtm.PROCESSING_DIR
     
     dataframe_file = dataset + '\\evo_concat_df' + '.csv'
     evo_dataframe = pd.read_csv(dataframe_file)
@@ -161,6 +133,9 @@ def load_evo_concat_df():
 #DATA PROCESSING
 
 def process():
+    dataset = dtm.PROCESSING_DIR
+    dtm.do_dir(dataset)
+    
     raws = load_raws()
     
     create_epos(raws)
@@ -168,15 +143,10 @@ def process():
     
     create_evos(epos)
     evos = load_evos()
-    
-    create_evo_dfs(evos)
-    evo_dfs = load_evo_dfs()
-    
-    create_evo_concat_df(evo_dfs)
-    #evo_concat_df = load_evo_concat_df()
+
+    create_evo_df(evos)
     
     
-process()
 
 
     

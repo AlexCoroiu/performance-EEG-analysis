@@ -20,7 +20,7 @@ RAWS_DIR = ""
 PROCESSING_DIR = ""
 EPOS_DIR = ""
 EVOS_DIR = ""
-EPO_DFS_DIR = ""
+EVO_DFS_DIR = ""
 
 # preparation
 PREPARATION_DIR = ""
@@ -43,20 +43,19 @@ def set_up(dataset):
     
     # processing
     dirs['PROCESSING_DIR'] = DATA_DIR + '\\' + "processed"
-    dirs['EPOS_DIR'] = DATA_DIR + '\\' + "epos"
-    dirs['EVOS_DIR'] = DATA_DIR + '\\' + "evos"
-    dirs['EPO_DFS_DIR'] = DATA_DIR + '\\' + "epo_dfs"
+    dirs['EPOS_DIR'] = PROCESSING_DIR + '\\' + "epos"
+    dirs['EVOS_DIR'] = PROCESSING_DIR + '\\' + "evos"
+    dirs['EVO_DFS_DIR'] = PROCESSING_DIR + '\\' + "evo_dfs"
     
     # preparation
     dirs['PREPARATION_DIR'] = DATA_DIR + '\\' + "prepared"
-    dirs['DATA_POINTS'] = DATA_DIR + '\\' + "dps"
+    #dirs['DATA_POINTS'] = DATA_DIR + '\\' + "dps"
     
     # analysis
     
     # results
 
 
-        
 #MNE DATA
 
 #sample subject

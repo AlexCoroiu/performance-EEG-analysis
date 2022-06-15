@@ -129,6 +129,8 @@ Created on Tue Jun 14 15:38:39 2022
 #     return avg_dataframe
 
 '''
+NOISE
+
 #infinite impulse response filter
 #high pass filter for 0.1 Hz frequencies
 NOISE_FILTER = (0.1,-0.1,0.02)
@@ -146,3 +148,99 @@ NOISE_FILTER = (0.1,-0.1,0.02)
 '''
 
 #baseline correction - a type of high pass filtering
+
+'''
+WAVEFORM CREATION
+
+time_latency = times - latency
+    sinusoid = np.sin(2 * np.pi * f_band * time_latency)
+    #time latency has to be used here for the actual time delay
+    #plt.plot(times, sinusoid)
+    #plt.show()
+    var = 0.2 * duration #width of the gaussian function 
+    sd = var ** 2
+    shift = var/4
+    
+    #if duration changes than the shape of the signal changes as well --> invariable duration
+
+    #position of the gaussian max
+    gf = np.exp(-(time_latency + shift) ** 2 / #+/- gf is left/right of sin 0 (where polarity changes)  
+                (sd*2)) #68% interval
+    
+    #duration bigger than altency than you ge ta shift too much to the right
+    
+    #!position of the gf comapred to the sinusoid
+    #plt.plot(times,gf)
+    #plt.show()
+    wave = 1e-10 * sinusoid * gf
+    #plt.plot(times, wave)
+    #plt.show
+    return wave
+'''
+
+# def create_data_points(dataframe):
+    
+#     data_points = dataframe[['time','channel']].drop_duplicates()
+    
+#     dataset = c.DATA_POINTS
+#     if not os.path.exists(dataset):
+#         os.mkdir(dataset)
+
+#     #part x condition x time x electrode
+#     print(dataframe.head(5))
+#     print(dataframe.tail(5))
+    
+#     #re-shape dataframe
+#     #part | time | condition | baseline | visual-left | visual-right
+#     wide_dataframe = dataframe.pivot(index=['part','time', 'channel'], 
+#                     columns='condition', 
+#                     values='value')
+    
+#     print(wide_dataframe.head(5))
+#     print(wide_dataframe.tail(5))
+    
+#     #descriptives
+#     wide_dataframe[c.EVENT_NAMES].describe()
+    
+#     #split by time x electrode
+#     grouped_dataframe = wide_dataframe.groupby(by = ['time','channel'])
+#     print(grouped_dataframe.head(5))
+#     print(grouped_dataframe.tail(5))
+
+    
+#     split_df = {}
+    
+#     for i,row in data_points.iterrows():
+#         dp = (row['time'],row['channel'])
+#         group = grouped_dataframe.get_group(dp)
+#         split_df[dp] = group
+    
+#     print(split_df)
+    
+#     for dp in split_df:
+#         dataframe_file = dataset + '\\' + str(dp[0]) + "_" + dp[1] + '.csv'
+#         split_df[dp].to_csv(dataframe_file)
+        
+# def load_data_points(dataframe):
+
+#     data_points = dataframe[['time','channel']].drop_duplicates()
+    
+#     dataset = c.DATA_POINTS
+    
+#     dps = {}
+    
+#     for i,row in data_points.iterrows():
+#         dp = (row['time'],row['channel'])
+#         dp_file =  dataset + '\\' + str(dp[0]) + "_" + dp[1] + '.csv'
+#         dp_values = pd.read_csv(dp_file)
+#         dps[dp] = dp_values
+    
+#     return dps
+
+#!!! always call concat only once, after the loop adds all dfs to a list
+
+#!!! always index = False when saving pandas to csv
+
+#!!! to csv overwrites by default
+
+#!!! for and if does not introduce new scope in python, only functons do

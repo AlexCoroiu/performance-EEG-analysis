@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-#%% setup
+# setup
 import mne
 import constants as c
 import simulation as sim
@@ -9,13 +9,11 @@ import numpy as np
 import pandas as pd
 import seaborn as sb
 import matplotlib.pyplot as plt
+import processing
 
-#%% GENERATION statistics: amplitude & latency
+# SIMULATION statistics: amplitude & latency
 
-#open files
-latencies, amplitudes = sim.load_generated_variables()
-
-def generation_statistics():
+def sim_var_statistics(amplitudes, latencies):
     print(amplitudes.head(5))
     print(latencies.head(5))
 
@@ -31,9 +29,7 @@ def generation_statistics():
     print(amplitudes.groupby('part')['amplitude'].describe())
     print(latencies.groupby('part')['latency'].describe())
     
-#generation_statistics()
-    
-def generation_vizualization():
+def sim_var_vizualization(amplitudes, latencies):
     #density plots condition
     sb.displot(latencies, x = 'latency', row = 'condition')
     plt.show()
@@ -63,59 +59,19 @@ def generation_vizualization():
              x = 'part', y = 'latency')
     plt.show()
     
-generation_vizualization()
-    
+def explore_sim_variables():
+    #open files
+    latencies, amplitudes = sim.load_generated_variables()
+    sim_var_statistics()
+    sim_var_vizualization()
 
-#%% LOAD DATA
-
-import processing
-
-#raws
-raws = processing.load_raws()
-
-#epos
-epos = processing.load_epos()
-
-#evos
-evos = processing.load_evos()
-
-#epos_dfs
-epo_dfs = processing.load_epo_dfs()
-
-#evos_dfs
-evo_dfs = processing.load_evo_dfs()
-    
-#load epoched dataframe 
-
-#epo_dataframe = processing.load_epo_concat_df() #computationally heavy
-
-#load evoked dataframe
-evo_dataframe = processing.load_evo_concat_df()
-
-#epo pop
-concat_epos = processing.load_concat_epo()
-
-#evo pop
-avg_evo = processing.load_avg_evo()
-
-#df pop
-avg_df = processing.load_avg_df()
-
-#%%DATAFRAME statistics
+#DATAFRAME statistics
 
 #population level 
 
 #participant level
 
-
-#-------------------------------------------
-
-
-
-
-#---------------------------------------------
-
-#%%VISUALZIE
+#VISUALZIE
 
 #VIZUALIZATION HELPERS
 
@@ -132,85 +88,66 @@ def make_top_sphere(epoched): #digital montage for each participant
     sphere = (x,y,z,radius)
     return sphere
 
-#sphere model for topographic representation
-sphere = make_top_sphere(concat_epos)
-
 #times
 PLOT_TIMES = np.arange(0.08, 0.28, 0.04)
 
-def mne_pop_level():
-    concat_epos.plot_psd()
-    #epoched.plot_psd_topomap()
-    
-    avg_evo_conditions = dict(zip(c.EVENT_NAMES, avg_evo))
-    
-    for event in c.EVENT_NAMES:
-        
-        #epohed data
-        condition = concat_epos[event]
-        
-        condition.plot
-    
-        condition.plot_image(combine='mean')
-    
-    
-        #evoked data
-        condition = avg_evo_conditions[event]
-        condition.plot_topomap(times = PLOT_TIMES,
-                            ch_type = 'eeg',
-                            sphere = sphere)
-        
-        #evoked.plot(gfp = True)
-        condition.plot(picks = ['POz'], gfp=False)
-        condition.plot(picks = ['PO3'], gfp=False)
-        condition.plot(picks = ['PO4'], gfp=False)
-        
-    
-    mne.viz.plot_compare_evokeds(avg_evo,
-                             legend='upper left', 
-                             show_sensors='upper right')
-
-
 #VIZUALIZE participant level
 
-def mne_part_level():
-    i = 0 #part nr. 1
+def mne_part_level(part, raws, epos, evos):
+    #sphere model for topographic representation
+    sphere = make_top_sphere(epos[part]) #based on 1st part
     
-    raws[i].pick(picks = c.CHANNELS_OCCIPITAL).plot(duration = 2)
+    raws[part].pick(picks = c.CHANNELS_OCCIPITAL).plot(duration = 4)
     
-    epos[i].plot_psd()
+    epos[part].plot_psd()
     #epoched.plot_psd_topomap()
     
-    avg_evo_conditions = dict(zip(c.EVENT_NAMES, evos[i]))
+    avg_evo_conditions = dict(zip(c.CONDITIONS, evos[part]))
     
-    for event in c.EVENT_NAMES:
+    for cond in c.CONDITIONS:
         
-        #epohed data
-        condition = epos[i][event]
+        #epoched data
+        epochs_cond = epos[part][cond]
         
-        condition.plot
+        epochs_cond.plot
     
-        condition.plot_image(combine='mean')
+        epochs_cond.plot_image(combine='mean')
     
     
         #evoked data
-        condition = avg_evo_conditions[event]
-        condition.plot_topomap(times = PLOT_TIMES,
+        evo_cond = avg_evo_conditions[cond]
+        evo_cond.plot_topomap(times = PLOT_TIMES,
                             ch_type = 'eeg',
                             sphere = sphere)
         
         #evoked.plot(gfp = True)
-        condition.plot(picks = ['POz'], gfp=False)
-        condition.plot(picks = ['PO3'], gfp=False)
-        condition.plot(picks = ['PO4'], gfp=False)
+        evo_cond.plot(picks = ['POz'], gfp=False)
+        evo_cond.plot(picks = ['PO3'], gfp=False)
+        evo_cond.plot(picks = ['PO4'], gfp=False)
         
     
-    mne.viz.plot_compare_evokeds(evos[i],
+    mne.viz.plot_compare_evokeds(evos[part],
                              legend='upper left', 
                              show_sensors='upper right')
+    
+    epos[part].pick(picks = c.CHANNELS_OCCIPITAL).plot(n_epochs = 4)
 
-# mne_pop_level()
-# mne_part_level()
+def explore_mne():
+    #raws
+    raws = processing.load_raws()
+    
+    #epos
+    epos = processing.load_epos()
+    
+    #evos
+    evos = processing.load_evos()
+    
+    mne_part_level(0, raws, epos, evos)
+    
+    
+    
+    
+    
     
     
     

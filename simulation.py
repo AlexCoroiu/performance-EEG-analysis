@@ -4,6 +4,7 @@ import random
 import constants as c
 import pandas as pd
 import data_manager as dtm
+import matplotlib.pyplot as plt
 
 #GENERATIOAN VARIABLES
 generated_latencies = []
@@ -26,9 +27,9 @@ def simulate_wave(times, latency, duration, f_band):
     gf = np.exp(-(time_latency + shift) ** 2 / #+/- gf is left/right of sin 0 (where polarity changes)  
                 (sd*2)) #68% interval
     
-    #duration bigger than altency than you ge ta shift too much to the right
+    #if duration bigger than latency than you get a shift too much to the right
     
-    #!position of the gf comapred to the sinusoid
+    #!position of the gf compared to the sinusoid
     #plt.plot(times,gf)
     #plt.show()
     wave = 1e-10 * sinusoid * gf
@@ -36,7 +37,11 @@ def simulate_wave(times, latency, duration, f_band):
     #plt.show
     return wave
 
-#test = simulate_wave(c.TIMES, 0.175, 0.2, 10)
+def plot_simulation_wave():
+    wave = simulate_wave(c.TIMES, 0.175, 0.2, 10)
+    plt.plot(c.TIMES, wave)
+    plt.show
+
 
 def simulate_base(event, src_sim):
     waveform = simulate_wave(c.TIMES, c.BASE_LATENCY, 
@@ -46,13 +51,13 @@ def simulate_base(event, src_sim):
                      c.BASE_AMPLITUDE*waveform,
                      event)
     
-def simulate_activation(event_id, event, src_sim, latency_var, amplitude_var):
+def simulate_activation(cond, event, src_sim, latency_var, amplitude_var):
     for hemi in range(2):
-        region = c.ACTIVATIONS[event_id][hemi][0]
-        label = c.LABELS[region]
+        region = c.ACTIVATIONS[cond][hemi][0]
+        label = c.VISUAL_LABELS[region]
         
         #latency
-        stimuli_side = event_id.split('_')[1][0]
+        stimuli_side = cond.split('_')[1][0]
         hemi_side = label.hemi[0]
         
         hemi_latency = c.LATENCY + latency_var
@@ -64,7 +69,7 @@ def simulate_activation(event_id, event, src_sim, latency_var, amplitude_var):
         waveform = simulate_wave(c.TIMES, hemi_latency, c.DURATION, c.F_BAND)
             
         #amplitude
-        hemi_amplitude = c.ACTIVATIONS[event_id][hemi][1] + amplitude_var
+        hemi_amplitude = c.ACTIVATIONS[cond][hemi][1] + amplitude_var
         
         #add wave
         src_sim.add_data(label,
@@ -83,7 +88,7 @@ def simulate_data(part_nr, part_latency_var, part_amplitude_var):
     
     for event in c.EVENTS:
         event_id = event[2]
-        condition = c.EVENT_NRS[event_id]
+        condition = c.EVENT_NAMES[event_id]
         if condition == 'baseline':
             simulate_base([event], src_sim)
         else:
@@ -121,39 +126,10 @@ def simulate_data(part_nr, part_latency_var, part_amplitude_var):
 
     return raw_sim
 
-def save_generated_variables():
-    dataset = c.SIMULATION_DIR
-
-    latency_df = pd.DataFrame(data = generated_latencies, 
-                              columns = ['part', 'condition', 'latency'])
-    dataframe_file = dataset + '\\latencies' + '.csv'
-    latency_df.to_csv(dataframe_file, index = False)
-
-    amplitude_df = pd.DataFrame(data = generated_amplitudes,
-                                columns = ['part', 'condition', 'amplitude'])
-    dataframe_file = dataset + '\\amplitudes' + '.csv'
-    amplitude_df.to_csv(dataframe_file, index = False)
-    
-def load_generated_variables():
-    dataset = c.SIMULATION_DIR
-    
-    dataframe_file = dataset + '\\latencies' + '.csv'
-    latencies = pd.read_csv(dataframe_file)
-    
-    dataframe_file = dataset + '\\amplitudes' + '.csv'
-    amplitudes = pd.read_csv(dataframe_file)
-
-    return latencies, amplitudes
-
-#DATA SIMULATE
-def simulate():
-    dataset = dtm.SIMULATION_DIR
-    dtm.do_dir(dataset)
-    
+def simulate_raws():
     dataset = dtm.RAWS_DIR
     dtm.do_dir(dataset)
     
-    #simulate
     for p in range(c.NR_PARTICIPANTS):
         part_nr = p + 1
         part = "part" + str(part_nr)
@@ -167,10 +143,40 @@ def simulate():
         raw = simulate_data(part_nr, part_latency_var, part_amplitude_var)
         raw_file = dataset + '\\' + part + '_eeg.fif'
         raw.save(raw_file, overwrite = True)
+
+def save_generated_variables():
+    dataset = dtm.SIMULATION_DIR
+
+    latency_df = pd.DataFrame(data = generated_latencies, 
+                              columns = ['part', 'condition', 'latency'])
+    dataframe_file = dataset + '\\latencies' + '.csv'
+    latency_df.to_csv(dataframe_file, index = False)
+
+    amplitude_df = pd.DataFrame(data = generated_amplitudes,
+                                columns = ['part', 'condition', 'amplitude'])
+    dataframe_file = dataset + '\\amplitudes' + '.csv'
+    amplitude_df.to_csv(dataframe_file, index = False)
+    
+def load_generated_variables():
+    dataset = dtm.SIMULATION_DIR
+    
+    dataframe_file = dataset + '\\latencies' + '.csv'
+    latencies = pd.read_csv(dataframe_file)
+    
+    dataframe_file = dataset + '\\amplitudes' + '.csv'
+    amplitudes = pd.read_csv(dataframe_file)
+
+    return latencies, amplitudes
+
+#DATA SIMULATE    
+def simulate():
+    dataset = dtm.SIMULATION_DIR
+    dtm.do_dir(dataset)
+    
+    #simulation
+    simulate_raws()
     
     #save simulation variables
     save_generated_variables()
-    
-simulate()
 
     

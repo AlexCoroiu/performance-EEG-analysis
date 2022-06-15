@@ -5,83 +5,79 @@ Created on Tue Jun 14 15:36:41 2022
 @author: User
 """
 
-#%%selection
 import constants as c
-import os.path
 import pandas as pd
+import data_manager as dtm
+import processing as pross
 
-#%%
-#set up
-
-# def create_data_points(dataframe):
+def prepare_test_dfs(df, density, local):
+    dir_name = 'dens' + str(density) + '_loc' + str(local)
+    dataset = dtm.PREPARATION_DIR + '\\' + dir_name
+    dtm.do_dir(dataset)
     
-#     data_points = dataframe[['time','channel']].drop_duplicates()
+    #select electrodes
+    electrodes = c.DENSITY[density]
     
-#     dataset = c.DATA_POINTS
-#     if not os.path.exists(dataset):
-#         os.mkdir(dataset)
-
-#     #part x condition x time x electrode
-#     print(dataframe.head(5))
-#     print(dataframe.tail(5))
+    if local:
+        electrodes = list(set(electrodes) & set(c.CHANNELS_VISUAL))
     
-#     #re-shape dataframe
-#     #part | time | condition | baseline | visual-left | visual-right
-#     wide_dataframe = dataframe.pivot(index=['part','time', 'channel'], 
-#                     columns='condition', 
-#                     values='value')
+    channeled_df = df[df['channel'].isin(electrodes)] #shallow copy protection
     
-#     print(wide_dataframe.head(5))
-#     print(wide_dataframe.tail(5))
-    
-#     #descriptives
-#     wide_dataframe[c.EVENT_NAMES].describe()
-    
-#     #split by time x electrode
-#     grouped_dataframe = wide_dataframe.groupby(by = ['time','channel'])
-#     print(grouped_dataframe.head(5))
-#     print(grouped_dataframe.tail(5))
-
-    
-#     split_df = {}
-    
-#     for i,row in data_points.iterrows():
-#         dp = (row['time'],row['channel'])
-#         group = grouped_dataframe.get_group(dp)
-#         split_df[dp] = group
-    
-#     print(split_df)
-    
-#     for dp in split_df:
-#         dataframe_file = dataset + '\\' + str(dp[0]) + "_" + dp[1] + '.csv'
-#         split_df[dp].to_csv(dataframe_file)
+    #split by test condition
+    for cond in c.TEST_CONDITIONS:
+        columns = ['part','time','channel', cond]
+        cond_df = channeled_df[columns]
         
-# def load_data_points(dataframe):
-
-#     data_points = dataframe[['time','channel']].drop_duplicates()
+        #save
+        dataframe_file = dataset + '\\' + cond + '.csv'
+        cond_df.to_csv(dataframe_file, index = False)
     
-#     dataset = c.DATA_POINTS
     
-#     dps = {}
+def load_test_dfs(df, density, local):
+    dir_name = 'dens' + density + '_loc' + local
+    dataset = dtm.PREPARATION_DIR + '\\' + dir_name
     
-#     for i,row in data_points.iterrows():
-#         dp = (row['time'],row['channel'])
-#         dp_file =  dataset + '\\' + str(dp[0]) + "_" + dp[1] + '.csv'
-#         dp_values = pd.read_csv(dp_file)
-#         dps[dp] = dp_values
+    for cond in c.TEST_CONDITIONS:
+        dataframe_file = dataset + '\\' + cond + '.csv'
+        prepared = pd.read_csv(dataframe_file)
     
-#     return dps
+def prepare():
+    dataset = dtm.PREPARATION_DIR 
+    dtm.do_dir(dataset)
+    
+    df = pross.load_evo_df()
+        
+    #select post stimulus time interval
+    post_stimulus_df = df[df['time']>=0]
+    
+    #format wide
+    wide_df = post_stimulus_df.pivot(index=['part','time','channel'], 
+                                    columns='condition', 
+                                    values='value')
+    
+    #flatten heirarchical structure or extract from it
+    wide_df = wide_df.reset_index()
+    
+    #calcualte difference between conditions into new column
+    wide_df[c.LATERALIZATION] = wide_df['vs_right'] - wide_df['vs_left']
 
+    print(wide_df.head(5))
 
-#%%
-# average baseline? for testing
-
-#%%
-
-# ELECT RELEVANT DATA
-# select testing window
-
-# select electrodes
+    #prepare cond dfs
+    for d in c.DENSITY.keys():
+        for l in c.LOCAL:
+            prepare_test_dfs(df, d, l)
+        
+        
+        
+        
+        
+        
+        
+    
+    
+    
+    
 
 
 
