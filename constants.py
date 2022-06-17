@@ -17,7 +17,9 @@ NR_TRIALS = 20
 
 # MONTAGE
 SFREQ = 250 #samples per second
-MONTAGE = 'standard_1020'  # (excluding mastoids)
+MONTAGE = 'standard_1020'
+
+# (excluding mastoids)
 
 CHANNELS_86 = ['Fp1', 'Fpz', 'Fp2', 
                 'AF9', 'AF7', 'AF5', 'AF3', 'AF1', 'AFz', 'AF2', 'AF4', 'AF6', 'AF8', 'AF10', 
@@ -49,16 +51,10 @@ CHANNELS_31 = ['Fp1', 'Fpz', 'Fp2',
                 'P7', 'P3', 'Pz', 'P4', 'P8', 
                 'O1', 'Oz', 'O2']
 
-DENSITY = {86: CHANNELS_86,
-           64: CHANNELS_64,
-           31: CHANNELS_31}
-
 CHANNELS_VISUAL = ['P9', 'P7', 'P5', 'P3', 'P1', 'Pz', 'P2', 'P4', 'P6', 'P8', 'P10', 
                     'PO9', 'PO7', 'PO5', 'PO3', 'PO1', 'POz', 'PO2', 'PO4', 'PO6', 'PO8', 'PO10', 
                     'O1', 'Oz', 'O2', 
                     'O9', 'Iz', 'O10']
-
-LOCAL = [True, False] #only visual, or all
 
 # (total channels ∩ visual) to get visual channels for different densities
 
@@ -192,11 +188,21 @@ BASELINE = (T_MIN, 0) #or None (for baseline correction)
 LATERALIZATION = 'difference'
 TEST_CONDITIONS = CONDITIONS + [LATERALIZATION] #4 total
 
+# window size (multiples of 4)
+WINDOW_SIZE = [0.004, 0.02] # 4 ms (original), or 20 ms
+
+#electrode density
+DENSITY = {86: CHANNELS_86,
+           64: CHANNELS_64,
+           31: CHANNELS_31}
+
+#electrode location
+LOCAL = [True, False] #only visual, or all
+
 # ANALYSIS
 SIGNIFICANCE = 0.05
 
-# sliding window (multiples of 4)
-TIME_WINDOW = 0.02 #20 ms
+
     
 
 

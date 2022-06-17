@@ -14,8 +14,6 @@ import processing
 # SIMULATION statistics: amplitude & latency
 
 def sim_var_statistics(amplitudes, latencies):
-    print(amplitudes.head(5))
-    print(latencies.head(5))
 
     #population level
     print(amplitudes['amplitude'].describe())
@@ -71,14 +69,14 @@ def explore_sim_variables():
 
 #participant level
 
-#VISUALZIE
+#condition level
 
 #VIZUALIZATION HELPERS
 
 #sphere for topographies
-def make_top_sphere(epoched): #digital montage for each participant
+def make_topo_sphere(epoched): #digital montage for each participant
     montage = epoched.get_montage()
-    print(montage)
+    # print(montage)
     ch_pos = montage.get_positions()['ch_pos']
     pos = np.stack([ch_pos[ch] for ch in c.MEASURE_ELECTRODES])
     radius = np.abs(pos[[2, 3], 0]).mean() #radius t7-t8
@@ -92,10 +90,9 @@ def make_top_sphere(epoched): #digital montage for each participant
 PLOT_TIMES = np.arange(0.08, 0.28, 0.04)
 
 #VIZUALIZE participant level
-
 def mne_part_level(part, raws, epos, evos):
     #sphere model for topographic representation
-    sphere = make_top_sphere(epos[part]) #based on 1st part
+    sphere = make_topo_sphere(epos[part]) #based on 1st part
     
     raws[part].pick(picks = c.CHANNELS_OCCIPITAL).plot(duration = 4)
     
@@ -117,8 +114,7 @@ def mne_part_level(part, raws, epos, evos):
         #evoked data
         evo_cond = avg_evo_conditions[cond]
         evo_cond.plot_topomap(times = PLOT_TIMES,
-                            ch_type = 'eeg',
-                            sphere = sphere)
+                            ch_type = 'eeg')
         
         #evoked.plot(gfp = True)
         evo_cond.plot(picks = ['POz'], gfp=False)
@@ -142,11 +138,14 @@ def explore_mne():
     #evos
     evos = processing.load_evos()
     
-    mne_part_level(0, raws, epos, evos)
+    mne_part_level(0, raws, epos, evos) #part 1
     
+def explore():
+    #explore_sim_variables()
+    explore_mne()
     
-    
-    
+
+
     
     
     

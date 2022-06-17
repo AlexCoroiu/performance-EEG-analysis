@@ -12,5 +12,5 @@ import preparation
 
 #simulation.simulate()
 #processing.process()
-#exploration.explore_mne()
+#exploration.explore()
 preparation.prepare()
