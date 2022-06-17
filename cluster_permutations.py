@@ -12,44 +12,74 @@ import pandas as pd
 import constants as c
 import preparation as prep
 
-#load prepped data
 
-window = 0.004
-window_ms = int(window*1000)
-t_max = int(c.T_MAX*1000)
-nr_windows = int(t_max/window_ms) + 1
-density = 86
-electrodes = c.DENSITY[density]
-local = False
-data = prep.load_test_dfs(window, density, local)
-
-#test mean == 0, 2 sided
-#for each time x electrode
-
-#chnnel positions in 2D
-adjacency, channels = mne.channels.find_ch_adjacency(c.INFO, 'eeg')
-#select only used electrodes
-e_ids = [channels.index(e) for e in electrodes]
-adjacency = adjacency[e_ids][:, e_ids]
+def get_channel_adjacency(electrodes):
+    #chnnel positions in 2D
+    adjacency, channels = mne.channels.find_ch_adjacency(c.INFO, 'eeg')
+    
+    #select only used electrodes
+    e_ids = [channels.index(e) for e in electrodes]
+    adjacency = adjacency[e_ids][:, e_ids]
+    #print(adjacency)
+    
+    return adjacency
 
 
-#default treshold corresponding to 0.05 p-value
-diff = data['difference']
-print(diff.shape)
-print(diff.head(1))
+def cluster_permutations(data):
+    #get unique windows and electrodes from data
+    windows = data['time'].unique()
+    electrodes = data['channel'].unique()
+    nr_windows = len(windows)
+    nr_electrodes = len(electrodes)
+    
+    shape = (c.NR_PARTICIPANTS, nr_windows, nr_electrodes)
+    
+    #channel adjacency matrix
+    adjacency = get_channel_adjacency(electrodes)
 
-diff = diff.set_index(['part', 'time', 'channel'])
-print(diff.shape)
-print(diff.head(1))
+    #from dataframe to NP multidimensional array
+    
+    # print(data.shape)
+    # print(data.head(nr_electrodes))
+    data = data.set_index(['part', 'time', 'channel'])
+    data_array = data.to_numpy()
 
-diff = diff.to_numpy()
-print(diff.shape)
-print(diff[0])
+    data_array = np.reshape(data_array, shape)
+    # print(data_array.shape)
+    # print(data_array[0][0])
+    
+    #test mean == 0, 2 sided
+    #for each time x electrode
+    #default treshold corresponding to 0.05 p-value
+    
 
-shape = (c.NR_PARTICIPANTS, nr_windows, density)
-diff = np.reshape(diff, shape)
-print(diff.shape)
-print(diff[0])
-#t_results, clusters, P_val_clusters, max_results = mne.stats.spatio_temporal_cluster_1samp_test( X = diff, adjacency = adjacency)
-                                                                                                
+    t_results, clusters, p_val_clusters, max_results = mne.stats.spatio_temporal_cluster_1samp_test( X = data_array, adjacency = adjacency)
+    
+    #select significant clusters
+    sig_clusters_ids = np.where(p_val_clusters < c.SIGNIFICANCE)[0]
+    sig_clusters = [clusters[i] for i in sig_clusters_ids]
+    t_sig_clusters = [t_results[c] for c in sig_clusters]
+    
+    #significant_points = cluster_pv.reshape(t_obs.shape).T < .05
+    print(sig_clusters)
+    print(t_sig_clusters)
+    
+    #visualize
 
+def test():           
+
+    #for all prepared data                                 
+    window_size = 0.02
+    density = 64
+    local = True  
+    
+    #load prepped data
+    data = prep.load_test_dfs(window_size, density, local) 
+    #for all test conditions
+    data_cond = data['vs_left']
+
+    cluster_permutations(data_cond)
+    
+test()
+    
+    

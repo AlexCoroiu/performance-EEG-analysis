@@ -40,8 +40,8 @@ def prepare_test_dfs(df, window, density, local):
         cond_df.to_csv(dataframe_file, index = False)
     
     
-def load_test_dfs(window, density, local):
-    window_ms = int(window*1000)
+def load_test_dfs(window_size, density, local):
+    window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
     dataset = dtm.PREPARATION_DIR + '\\' + dir_name
     

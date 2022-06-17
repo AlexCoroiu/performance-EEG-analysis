@@ -244,3 +244,15 @@ time_latency = times - latency
 #!!! to csv overwrites by default
 
 #!!! for and if does not introduce new scope in python, only functons do
+
+'''
+#windows used
+window_ms = int(window*1000)
+t_max = int(c.T_MAX*1000)
+nr_windows = int(t_max/window_ms) + 1
+
+#electrodes used
+electrodes = c.DENSITY[density] 
+if local:
+    electrodes = list(set(electrodes) & set(c.CHANNELS_VISUAL))
+'''
