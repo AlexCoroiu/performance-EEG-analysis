@@ -20,4 +20,4 @@ def run_dataset():
     multiple_comparisons.test()
     results.results()
 
-#run_dataset()
+run_dataset()

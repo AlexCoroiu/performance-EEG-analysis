@@ -7,7 +7,7 @@ import data_manager as dtm
 # SIMULATION VARIABLES
 # Change these variables to generate data with different amplitude values
 
-AMPLITUDE = (60,30) #mV (contra, ipsi)
+AMPLITUDE = (60,20) #mV (contra, ipsi)
 #40-20, 60-30, 80-40, 60-20, 80-20, 80-30
 
 #infinite impulse response filter
