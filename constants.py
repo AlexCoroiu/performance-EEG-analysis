@@ -8,8 +8,14 @@ import data_manager as dtm
 # Change these variables to generate data with different amplitude values
 
 AMPLITUDE = (60,30) #mV (contra, ipsi)
+#40-20, 60-30, 80-40, 60-20, 80-20, 80-30
 
-dtm.set_up('data_amp' + str(AMPLITUDE[0]) + str(AMPLITUDE[1]))
+#infinite impulse response filter
+NOISE_FILTER = (0.1,-0.1,0.02)
+#0.1-0.02, 0.2-0.04
+
+dtm.set_up('data_amp' + str(AMPLITUDE[0]) + str(AMPLITUDE[1])
+           + '_noise' + str(NOISE_FILTER[0]))
 
 # DATA SIZE
 NR_PARTICIPANTS = 20
@@ -115,12 +121,12 @@ right_hemi = 'G_occipital_sup-rh'
 
 ACTIVATIONS = {
     'vs_right':
-        [(left_hemi, AMPLITUDE[0]), 
-         (right_hemi, AMPLITUDE[1])
+        [(left_hemi, AMPLITUDE[0]), #contra
+         (right_hemi, AMPLITUDE[1]) #ipsi
          ],
     'vs_left':
-        [(left_hemi, AMPLITUDE[1]),
-         (right_hemi, AMPLITUDE[0])
+        [(left_hemi, AMPLITUDE[1]), #ipsi
+         (right_hemi, AMPLITUDE[0]) #contra
          ]
 }
 
@@ -171,9 +177,6 @@ FWD = dtm.do_fwd(FS_FWD_FILE, NEW_FWD, TRANS, SRC, INFO)
 #noise covariance matrix
 NOISE_COV = mne.make_ad_hoc_cov(info = INFO)
 
-#infinite impulse response filter
-NOISE_FILTER = (0.1,-0.1,0.02)
-
 # PROCESSING
 # band pass
 FILTER = (0.1, 30)
@@ -201,6 +204,8 @@ LOCAL = [True, False] #only visual, or all
 
 # ANALYSIS
 SIGNIFICANCE = 0.05
+
+#tets methods
 
 
     

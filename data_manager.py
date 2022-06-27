@@ -26,6 +26,9 @@ EVO_DFS_DIR = ""
 PREPARATION_DIR = ""
 DATA_POINTS = ""
 
+#analysis & results
+ANALYSED_DIR = ""
+
 def do_dir(dataset):
     if not os.path.exists(dataset):
         os.mkdir(dataset)
@@ -52,8 +55,10 @@ def set_up(dataset):
     #dirs['DATA_POINTS'] = DATA_DIR + '\\' + "dps"
     
     # analysis
+    dirs['ANALYSED_DIR'] = DATA_DIR + '\\' + "analysed"
     
     # results
+    
 
 
 #MNE DATA

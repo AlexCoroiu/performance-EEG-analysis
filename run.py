@@ -9,8 +9,15 @@ import simulation
 import processing
 import exploration
 import preparation
+import multiple_comparisons
+import results
 
-#simulation.simulate()
-#processing.process()
-#exploration.explore()
-preparation.prepare()
+# SIMULATE-ANALYSE DATA
+def run_dataset():
+    simulation.simulate()
+    processing.process()
+    preparation.prepare()
+    multiple_comparisons.test()
+    results.results()
+
+#run_dataset()

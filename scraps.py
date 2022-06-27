@@ -256,3 +256,10 @@ electrodes = c.DENSITY[density]
 if local:
     electrodes = list(set(electrodes) & set(c.CHANNELS_VISUAL))
 '''
+
+
+'''
+reject ('null hypothesis'):
+    False = not significant
+    True = significant
+'''

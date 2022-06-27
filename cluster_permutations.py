@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import constants as c
 import preparation as prep
+import data_mananger as dtm
 
 
 def get_channel_adjacency(electrodes):
@@ -28,8 +29,8 @@ def get_channel_adjacency(electrodes):
 def cluster_permutations(data):
     #get unique windows and electrodes from data
     windows = data['time'].unique()
-    electrodes = data['channel'].unique()
     nr_windows = len(windows)
+    electrodes = data['channel'].unique()
     nr_electrodes = len(electrodes)
     
     shape = (c.NR_PARTICIPANTS, nr_windows, nr_electrodes)
@@ -53,33 +54,47 @@ def cluster_permutations(data):
     #default treshold corresponding to 0.05 p-value
     
 
-    t_results, clusters, p_val_clusters, max_results = mne.stats.spatio_temporal_cluster_1samp_test( X = data_array, adjacency = adjacency)
+    t_stats, clusters, p_val_clusters, max_results = mne.stats.spatio_temporal_cluster_1samp_test( X = data_array, adjacency = adjacency)
     
     #select significant clusters
     sig_clusters_ids = np.where(p_val_clusters < c.SIGNIFICANCE)[0]
     sig_clusters = [clusters[i] for i in sig_clusters_ids]
-    t_sig_clusters = [t_results[c] for c in sig_clusters]
+    t_sig_clusters = [t_stats[c] for c in sig_clusters]
     
     #significant_points = cluster_pv.reshape(t_obs.shape).T < .05
     print(sig_clusters)
     print(t_sig_clusters)
     
-    #visualize
+    #return
+    
 
-def test():           
-
-    #for all prepared data                                 
-    window_size = 0.02
-    density = 64
-    local = True  
+def test_condition(window_size, density, local, cond):
+    window_ms = int(window_size*1000)
+    dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
+    dataset = dtm.ANALYSED_DIR + '\\' + dir_name
+    dtm.do_dir(dataset)
     
     #load prepped data
     data = prep.load_test_dfs(window_size, density, local) 
     #for all test conditions
-    data_cond = data['vs_left']
+    data_cond = data[cond]
 
-    cluster_permutations(data_cond)
+    results = cluster_permutations(data_cond)
+    #save
+    dataframe_file = dataset + '\\' + cond + '_cp.csv'
+    results.to_csv(dataframe_file, index = False)
     
-test()
+
+def test():       
+    dataset = dtm.ANALYSED_DIR
+    dtm.do_dir(dataset)
+    
+    for w in c.WINDOW_SIZE:
+        for d in c.DENSITY.keys():
+            for l in c.LOCAL:
+                for cond in c.TEST_CONDITIONS:
+                    test_condition(w,d,l,cond)
+                    #bonferroni(w,d,l,cond)    
+
     
     

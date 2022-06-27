@@ -21,7 +21,7 @@ def simulate_wave(times, latency, duration, f_band):
     sd = var ** 2
     shift = var/4
     
-    #if duration changes than the shape of the signal changes as well --> invariable duration
+    #duration changes than the shape of the signal changes as well --> invariable duration
 
     #position of the gaussian max
     gf = np.exp(-(time_latency + shift) ** 2 / #+/- gf is left/right of sin 0 (where polarity changes)  
