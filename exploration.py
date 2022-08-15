@@ -145,7 +145,7 @@ def explore():
     explore_mne()
     
 
-
+#explore()
     
     
     

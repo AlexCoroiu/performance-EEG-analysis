@@ -51,14 +51,13 @@ def bonferroni(results):
     
 
 def crit_p_correction(results, crit_p):
-
     reject = [ p < crit_p for p in results['p_val']]
     results['crit_p_reject'] = reject
     
     return results
 
 
-def sliding_window(results):
+def window(results):
     windows = results['time'].unique()
     nr_windows = len(windows)
     electrodes = results['channel'].unique()
@@ -69,7 +68,7 @@ def sliding_window(results):
     print(crit_p)
     results = crit_p_correction(results, crit_p)
     
-    #sliding window correction
+    #window window correction
     
     #create window x electrode matrix
     matrix = results.pivot(index = 'time',
@@ -77,7 +76,7 @@ def sliding_window(results):
                             values = 'crit_p_reject'
                             )
     
-    sliding_matrix = matrix.copy(deep = True)
+    window_matrix = matrix.copy(deep = True)
 
     last_window = nr_windows-1
     
@@ -85,29 +84,29 @@ def sliding_window(results):
     for e in electrodes:
         if not ((matrix.at[windows[0], e] == True) 
             and (matrix.at[windows[1], e] == True)):
-            sliding_matrix.at[windows[0], e] = False
+            window_matrix.at[windows[0], e] = False
         
         for i in range(1, last_window - 1):
             if not ((matrix.at[windows[i], e] == True) 
                 and ((matrix.at[windows[i-1], e] == True 
                 or matrix.at[windows[i+1], e] == True))):
-                sliding_matrix.at[windows[i], e] = False 
+                window_matrix.at[windows[i], e] = False 
                 
         if not ((matrix.at[windows[last_window], e] == True) 
             and (matrix.at[windows[last_window - 1], e] == True)):
-            sliding_matrix.at[windows[last_window], e] = False
+            window_matrix.at[windows[last_window], e] = False
                 
     #back to long format
-    sliding_results = sliding_matrix.melt(ignore_index = False,
-                                         value_name = 'sliding_window_reject')
+    window_results = window_matrix.melt(ignore_index = False,
+                                         value_name = 'window_reject')
 
-    sliding_results = sliding_results.reset_index()
-    print(sliding_results)
+    window_results = window_results.reset_index()
+    print(window_results)
     results = results.reset_index()
     print(results)
     
     #add as column to results
-    results = pd.merge(results, sliding_results, how = 'inner',
+    results = pd.merge(results, window_results, how = 'inner',
                        left_on = ['time', 'channel'],
                        right_on = ['time', 'channel'])
     
@@ -115,7 +114,8 @@ def sliding_window(results):
     
     return results
     
-def test_condition(window_size, density, local, cond):         
+
+def test_condition(window_size, density, local, cond, correction):         
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
     dataset = dtm.ANALYSED_DIR + '\\' + dir_name
@@ -125,22 +125,23 @@ def test_condition(window_size, density, local, cond):
     data = prep.load_test_dfs(window_size, density, local) 
     data_cond = data[cond]
 
-    #bonferroni
-    results = multiple_comparison(data_cond)
-    b_results = bonferroni(results)  
-    b_results = b_results[b_results['bonferroni_reject'] == True]
-    #save
-    dataframe_file = dataset + '\\' + cond + '_b.csv'
-    b_results.to_csv(dataframe_file, index = False)
+    if correction == 'bonferroni':
+        #bonferroni
+        results = multiple_comparison(data_cond)
+        b_results = bonferroni(results)  
+        b_results = b_results[b_results['bonferroni_reject'] == True]
+        #save
+        dataframe_file = dataset + '\\' + cond + '_b.csv'
+        b_results.to_csv(dataframe_file, index = False)
 
-    #sliding window
-    results = multiple_comparison(data_cond)
-    sw_results = sliding_window(results)
-    sw_results = sw_results[sw_results['sliding_window_reject'] == True]
-    #save
-    dataframe_file = dataset + '\\' + cond + '_sw.csv'
-    sw_results.to_csv(dataframe_file, index = False)
-    
+    elif correction == 'window':
+        #window
+        results = multiple_comparison(data_cond)
+        w_results = window(results)
+        w_results = w_results[w_results['window_reject'] == True]
+        #save
+        dataframe_file = dataset + '\\' + cond + '_w.csv'
+        w_results.to_csv(dataframe_file, index = False)
 
 def test():
     dataset = dtm.ANALYSED_DIR
@@ -150,8 +151,8 @@ def test():
         for d in c.DENSITY.keys():
             for l in c.LOCAL:
                 for cond in c.TEST_CONDITIONS:
-                    test_condition(w,d,l,cond)
+                    test_condition(w,d,l,cond, 'window')
                     #bonferroni(w,d,l,cond)
                                         
-#test_condition(0.02, 64, False, 'baseline')
+#test_condition(0.02, 64, False, 'baseline', 'bonferroni)
     

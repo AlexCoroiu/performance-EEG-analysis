@@ -40,7 +40,7 @@ def results():
         for d in c.DENSITY.keys():
             for l in c.LOCAL:
                 for cond in c.TEST_CONDITIONS:
-                    result = summary_results(w,d,l,cond, 'sw')
+                    result = summary_results(w,d,l,cond,'w')
                     results.append(result)
                     
     results_df = pd.DataFrame(results, 
@@ -51,7 +51,7 @@ def results():
     dataframe_file = dataset + '\\results.csv'
     results_df.to_csv(dataframe_file, index = False)
                     
-#print(summary_results(0.02,86, True, 'baseline', 'sw'))
+#print(summary_results(0.02,86, True, 'baseline', 'w'))
 
             
         

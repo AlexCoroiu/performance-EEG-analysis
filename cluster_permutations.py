@@ -8,10 +8,10 @@ Created on Tue Jun 14 13:33:27 2022
 #setup
 import mne
 import numpy as np
+import data_manager as dtm
 import pandas as pd
 import constants as c
 import preparation as prep
-import data_mananger as dtm
 
 
 def get_channel_adjacency(electrodes):
@@ -44,9 +44,9 @@ def cluster_permutations(data):
     # print(data.head(nr_electrodes))
     data = data.set_index(['part', 'time', 'channel'])
     data_array = data.to_numpy()
-
+    #print(data_array.shape)
     data_array = np.reshape(data_array, shape)
-    # print(data_array.shape)
+    #print(data_array.shape)
     # print(data_array[0][0])
     
     #test mean == 0, 2 sided
@@ -54,18 +54,55 @@ def cluster_permutations(data):
     #default treshold corresponding to 0.05 p-value
     
 
-    t_stats, clusters, p_val_clusters, max_results = mne.stats.spatio_temporal_cluster_1samp_test( X = data_array, adjacency = adjacency)
+    t_stats, clusters, p_val_clusters, max_results = mne.stats.spatio_temporal_cluster_1samp_test( X = data_array, 
+                                                                                                  adjacency = adjacency,
+                                                                                                  out_type = 'mask')
     
     #select significant clusters
     sig_clusters_ids = np.where(p_val_clusters < c.SIGNIFICANCE)[0]
     sig_clusters = [clusters[i] for i in sig_clusters_ids]
-    t_sig_clusters = [t_stats[c] for c in sig_clusters]
     
-    #significant_points = cluster_pv.reshape(t_obs.shape).T < .05
     print(sig_clusters)
-    print(t_sig_clusters)
     
-    #return
+    results = pd.DataFrame(columns = ['time', 'channel'])
+    print(results) #empty df
+
+    i = 1
+
+    for cluster in sig_clusters:
+        print(cluster.shape)
+        shape = (nr_windows*nr_electrodes, 1)
+        
+        cluster_df = pd.DataFrame(data = cluster,
+                                  index = windows,
+                                  columns = electrodes)
+        
+        cluster_df.index.names = ['time']
+
+        #print(cluster_df) #matrix
+        
+        cluster_name = 'cluster' + str(i)
+        cluster_df = cluster_df.melt(ignore_index = False,
+                                     var_name = 'channel',
+                                     value_name = cluster_name)
+        i = i+1
+    
+        cluster_df = cluster_df[cluster_df[cluster_name] == True]
+        
+        print(cluster_df)
+        
+        #add as column to results
+        results = pd.merge(results, cluster_df, how = 'outer', #union
+                       left_on = ['time', 'channel'],
+                       right_on = ['time', 'channel'])
+        
+    print(results)
+        
+    return results
+        
+    
+    #return sig. cluster data points (times and electrodes)
+    #dataframe format?
     
 
 def test_condition(window_size, density, local, cond):
@@ -96,5 +133,5 @@ def test():
                     test_condition(w,d,l,cond)
                     #bonferroni(w,d,l,cond)    
 
-    
+test_condition(0.02, 64, False, 'difference')
     

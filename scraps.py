@@ -263,3 +263,16 @@ reject ('null hypothesis'):
     False = not significant
     True = significant
 '''
+
+#extract t statistics for all data points in sig clusters
+#t_sig_clusters = [t_stats[c] for c in sig_clusters]
+
+#significant_points = cluster_pv.reshape(t_obs.shape).T < .05
+#print(t_sig_clusters)
+
+
+#MULTIINDEX
+# multids = pd.MultiIndex.from_product([windows, electrodes],
+#                                         names = ['time', 'channel'])
+    
+# results = pd.DataFrame(index = multids)

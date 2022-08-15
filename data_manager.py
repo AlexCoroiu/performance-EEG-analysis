@@ -59,8 +59,6 @@ def set_up(dataset):
     
     # results
     
-
-
 #MNE DATA
 
 #sample subject

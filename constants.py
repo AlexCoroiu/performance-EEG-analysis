@@ -7,15 +7,18 @@ import data_manager as dtm
 # SIMULATION VARIABLES
 # Change these variables to generate data with different amplitude values
 
-AMPLITUDE = (60,20) #mV (contra, ipsi)
+AMPLITUDE = (60,30) #mV (contra, ipsi)
 #40-20, 60-30, 80-40, 60-20, 80-20, 80-30
 
 #infinite impulse response filter
 NOISE_FILTER = (0.1,-0.1,0.02)
 #0.1-0.02, 0.2-0.04
 
+BAND_PASS_FILTERING = True
+
 dtm.set_up('data_amp' + str(AMPLITUDE[0]) + str(AMPLITUDE[1])
-           + '_noise' + str(NOISE_FILTER[0]))
+           + '_noise' + str(NOISE_FILTER[0])
+           + '_filter' + str(BAND_PASS_FILTERING))
 
 # DATA SIZE
 NR_PARTICIPANTS = 20
@@ -192,7 +195,7 @@ LATERALIZATION = 'difference'
 TEST_CONDITIONS = CONDITIONS + [LATERALIZATION] #4 total
 
 # window size (multiples of 4)
-WINDOW_SIZE = [0.004, 0.02] # 4 ms (original), or 20 ms
+WINDOW_SIZE = [0.004, 0.012, 0.02] # 4 ms (original), 12 ms, or 20 ms
 
 #electrode density
 DENSITY = {86: CHANNELS_86,
@@ -205,7 +208,6 @@ LOCAL = [True, False] #only visual, or all
 # ANALYSIS
 SIGNIFICANCE = 0.05
 
-#tets methods
 
 
     

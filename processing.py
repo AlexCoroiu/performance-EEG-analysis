@@ -28,7 +28,8 @@ def create_epos(raws):
     for p in range(c.NR_PARTICIPANTS):
         part = "part" + str(p + 1)
         raw_part = raws[p]
-        raw_part = raw_part.filter(c.FILTER[0],c.FILTER[1]) #band pass
+        if c.BAND_PASS_FILTERING:
+            raw_part = raw_part.filter(c.FILTER[0],c.FILTER[1]) #band pass
         #print(raw_part)    
         
         #epoched (add event times)
