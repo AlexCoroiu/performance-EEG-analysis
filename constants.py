@@ -160,6 +160,23 @@ AMPLITUDE_VAR_PART_DIST = (0,2.5)
 AMPLITUDE_VAR_DIST = (0,2.5) 
 #amplitude +/- 5mV (2*SD)
 
+#latency variables
+LAT_VARS_FILE = 'lat_vars.csv'
+NEW_VARS = False #should be created only once (x2 test-retest)
+LAT_VARS = dtm.do_vars(LAT_VARS_FILE, NEW_VARS, 
+                        NR_PARTICIPANTS, EVENTS, EVENT_NAMES, 
+                        LATENCY_VAR_PART_DIST, LATENCY_VAR_DIST)
+
+#amplitude variables
+AMP_VARS_FILE = 'amp_vars.csv'
+NEW_VARS = False #should be created only once (x2 test-retest)
+AMP_VARS = dtm.do_vars(AMP_VARS_FILE, NEW_VARS, 
+                        NR_PARTICIPANTS, EVENTS, EVENT_NAMES, 
+                        AMPLITUDE_VAR_PART_DIST, AMPLITUDE_VAR_DIST)
+
+#part variables wide format (part x event_time)
+#event variables wide format (part x event_time)
+
 # PROPAGATION
 
 #source space
@@ -207,10 +224,6 @@ LOCAL = [True, False] #only visual, or all
 
 # ANALYSIS
 SIGNIFICANCE = 0.05
-
-
-
-    
 
 
 

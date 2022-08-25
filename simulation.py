@@ -1,14 +1,10 @@
 import numpy as np
 import mne
-import random
 import constants as c
 import pandas as pd
 import data_manager as dtm
 import matplotlib.pyplot as plt
 
-#GENERATIOAN VARIABLES
-generated_latencies = []
-generated_amplitudes = []
 
 #SIMULATION FUNCTIONS
 def simulate_wave(times, latency, duration, f_band):
@@ -78,7 +74,7 @@ def simulate_activation(cond, event, src_sim, latency_var, amplitude_var):
         
         #print(stimuli_side, hemi_side, hemi_latency, hemi_amplitude)    
 
-def simulate_data(part_nr, part_latency_var, part_amplitude_var):
+def simulate_data(part_nr):
     
     #SIGNAL
     
@@ -87,25 +83,25 @@ def simulate_data(part_nr, part_latency_var, part_amplitude_var):
                                              tstep = c.TSTEP)
     
     for event in c.EVENTS:
+        time = event[0]
         event_id = event[2]
         condition = c.EVENT_NAMES[event_id]
         if condition == 'baseline':
             simulate_base([event], src_sim)
         else:
             #signal vairables
-            #latency
-            event_latency_var = random.gauss(c.LATENCY_VAR_DIST[0],
-                                             c.LATENCY_VAR_DIST[1])
-            latency_var = part_latency_var + event_latency_var
             
-            generated_latencies.append([part_nr, condition, latency_var])
+            #latency
+            latency_var = c.LAT_VARS.loc[(c.LAT_VARS['part'] == part_nr) & 
+                                         (c.LAT_VARS['time'] == time), 
+                                         'var'].iloc[0]
+            
         
             #amplitude
-            event_amplitude_var = random.gauss(c.AMPLITUDE_VAR_DIST[0],
-                                               c.AMPLITUDE_VAR_DIST[1])
-            amplitude_var = part_amplitude_var + event_amplitude_var
-            
-            generated_amplitudes.append([part_nr, condition, amplitude_var])
+            amplitude_var = c.AMP_VARS.loc[(c.AMP_VARS['part'] == part_nr) & 
+                                           (c.AMP_VARS['time'] == time),
+                                           'var'].iloc[0]
+        
             
             simulate_activation(condition, [event], src_sim, 
                                 latency_var, amplitude_var)
@@ -133,40 +129,9 @@ def simulate_raws():
     for p in range(c.NR_PARTICIPANTS):
         part_nr = p + 1
         part = "part" + str(part_nr)
-        #raw data
-        part_latency_var = random.gauss(c.LATENCY_VAR_PART_DIST[0],
-                                    c.LATENCY_VAR_PART_DIST[1])
-    
-        part_amplitude_var = random.gauss(c.AMPLITUDE_VAR_PART_DIST[0],
-                                          c.AMPLITUDE_VAR_PART_DIST[1])
-        
-        raw = simulate_data(part_nr, part_latency_var, part_amplitude_var)
+        raw = simulate_data(part_nr)
         raw_file = dataset + '\\' + part + '_eeg.fif'
         raw.save(raw_file, overwrite = True)
-
-def save_generated_variables():
-    dataset = dtm.SIMULATION_DIR
-
-    latency_df = pd.DataFrame(data = generated_latencies, 
-                              columns = ['part', 'condition', 'latency'])
-    dataframe_file = dataset + '\\latencies' + '.csv'
-    latency_df.to_csv(dataframe_file, index = False)
-
-    amplitude_df = pd.DataFrame(data = generated_amplitudes,
-                                columns = ['part', 'condition', 'amplitude'])
-    dataframe_file = dataset + '\\amplitudes' + '.csv'
-    amplitude_df.to_csv(dataframe_file, index = False)
-    
-def load_generated_variables():
-    dataset = dtm.SIMULATION_DIR
-    
-    dataframe_file = dataset + '\\latencies' + '.csv'
-    latencies = pd.read_csv(dataframe_file)
-    
-    dataframe_file = dataset + '\\amplitudes' + '.csv'
-    amplitudes = pd.read_csv(dataframe_file)
-
-    return latencies, amplitudes
 
 #DATA SIMULATE    
 def simulate():
@@ -176,7 +141,5 @@ def simulate():
     #simulation
     simulate_raws()
     
-    #save simulation variables
-    save_generated_variables()
 
     

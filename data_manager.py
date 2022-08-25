@@ -7,6 +7,8 @@ Created on Tue Jun 14 15:45:01 2022
 
 import os.path
 import mne
+import random
+import pandas as pd
 
 #FILE STRUCTURE
    
@@ -110,3 +112,47 @@ def do_fwd(file, new, trans, src, info):
         
     return fwd
 
+#get or create variables file
+
+def do_vars(file, new, nr_parts, events, event_names, 
+                part_dist, event_dist):
+    gen_vars = None
+     
+    if new: #create new variable data
+        gen_vars = [] #(part x non_baseline_events)
+        for p in range(nr_parts):
+            part_nr = p + 1
+            
+            part_var = random.gauss(part_dist[0],
+                                     part_dist[1])
+    
+            for event in events:
+                event_time = event[0]
+                event_id = event[2]
+                condition = event_names[event_id]
+                if condition != 'baseline': #for vs_right, vs_left
+                
+                    #latency
+                    event_var = random.gauss(event_dist[0],
+                                             event_dist[1])
+                    
+                    var = part_var + event_var
+                    
+                    gen_vars.append([part_nr, part_var, 
+                                     event_time, condition, event_var,
+                                     var])
+                            
+        #save
+        gen_vars_df = pd.DataFrame(data = gen_vars, 
+                                   columns = ['part', 'part_var', 
+                                              'time','condition',
+                                              'event_var', 'var'])
+        
+        gen_vars_df.to_csv(file, index = False)
+               
+    else: #load existing from file
+        gen_vars = pd.read_csv(file)
+        
+    return gen_vars
+    
+    

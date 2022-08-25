@@ -53,6 +53,11 @@ def results():
                     
 #print(summary_results(0.02,86, True, 'baseline', 'w'))
 
+#TODO restructure results data 
+#(windoes size, electrodes number, electrodes positions, sig data points # / test cond) 
+#--> for each entry have a separate table with (count, time, location)
+
+
             
         
     

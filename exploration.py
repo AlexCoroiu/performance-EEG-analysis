@@ -11,57 +11,49 @@ import seaborn as sb
 import matplotlib.pyplot as plt
 import processing
 
-# SIMULATION statistics: amplitude & latency
+# SIMULATION statistics: amplitude & latency (part + event var)
 
-def sim_var_statistics(amplitudes, latencies):
+def sim_var_statistics(gen_vars):
+    
+    for var, data in gen_vars.items():
+        #population level
+        print(data['var'].describe())
+        
+        #condition level
+        print(data.groupby('condition')['var'].describe())
+        
+        #event level
+        print(data.groupby('time')['var'].describe())
+        
+        #participant level
+        print(data.groupby('part')['var'].describe())
+    
+def sim_var_vizualization(gen_vars):
+    
+    for var, data in gen_vars.items():
+        #density plots condition
+        plot = sb.displot(data, x = 'var', row = 'condition')
+        plt.show()
 
-    #population level
-    print(amplitudes['amplitude'].describe())
-    print(latencies['latency'].describe())
-    
-    #condition level
-    print(amplitudes.groupby('condition')['amplitude'].describe())
-    print(latencies.groupby('condition')['latency'].describe())
-    
-    #participant level
-    print(amplitudes.groupby('part')['amplitude'].describe())
-    print(latencies.groupby('part')['latency'].describe())
-    
-def sim_var_vizualization(amplitudes, latencies):
-    #density plots condition
-    sb.displot(latencies, x = 'latency', row = 'condition')
-    plt.show()
-    sb.displot(amplitudes, x = 'amplitude', row = 'condition')
-    plt.show()
-    
-    #violin plots participant
-    sb.violinplot(data = amplitudes,
-                  x = 'part', y = 'amplitude')
-    plt.show()
-    
-    sb.violinplot(data = latencies,
-             x = 'part', y = 'latency')
-    plt.show()
-    
-    
-    #violin plots condition x participant
-    plot = sb.FacetGrid(amplitudes, row = 'condition')
-    plot.map(sb.violinplot,
-             data = amplitudes,
-             x = 'part', y = 'amplitude')
-    plt.show()
-    
-    plot = sb.FacetGrid(latencies, row = 'condition')
-    plot.map(sb.violinplot,
-             data = latencies,
-             x = 'part', y = 'latency')
-    plt.show()
+        #violin plots participant
+        plot = sb.violinplot(data = data,
+                      x = 'part', y = 'var')
+        plt.show()
+        
+        #violin plots condition x participant
+        plot = sb.FacetGrid(data, row = 'condition')
+        plot = plot.map(sb.violinplot,
+                 data = data,
+                 x = 'part', y = 'var')
+        plt.show()
+        
+        #violing plots event x participant
     
 def explore_sim_variables():
-    #open files
-    latencies, amplitudes = sim.load_generated_variables()
-    sim_var_statistics()
-    sim_var_vizualization()
+    gen_vars = {'amplitude': c.AMP_VARS, 
+                'latency': c.LAT_VARS}
+    sim_var_statistics(gen_vars)
+    sim_var_vizualization(gen_vars)
 
 #DATAFRAME statistics
 
@@ -141,11 +133,11 @@ def explore_mne():
     mne_part_level(0, raws, epos, evos) #part 1
     
 def explore():
-    #explore_sim_variables()
-    explore_mne()
+    explore_sim_variables()
+    #explore_mne()
     
 
-#explore()
+explore()
     
     
     
