@@ -21,11 +21,12 @@ import data_manager as dtm
 #default treshold corresponding to 0.05 p-value
 
 def multiple_comparison(data):
-    print(data)
+    print('Data\n', data)
     #reshape data into (time x channel) on participant
     #format wide
     data = data.pivot(index=['time','channel'], 
                       columns='part')
+    print('Data Pivoted\n', data)
     
     #ttest
     t_stats, p_vals = scipy.stats.ttest_1samp(data, 
@@ -34,11 +35,11 @@ def multiple_comparison(data):
                                               alternative = 'two-sided')
 
     #results df
-    data['p_val'] = p_vals
+    data['p_val'] = p_vals 
+    data = data.droplevel('part', axis = 1)
     results = data[['p_val']]
-    results = results.reset_index() #stays multilevel !!!
-    
-    print(results)
+    results = results.reset_index()
+    print('Results Indexed\n',results)
     return results
 
     
@@ -65,7 +66,7 @@ def window(results):
     
     #crit p correction
     crit_p = math.sqrt(c.SIGNIFICANCE/((nr_windows-1)*nr_electrodes))
-    print(crit_p)
+    print('Critical P-Value', crit_p)
     results = crit_p_correction(results, crit_p)
     
     #window window correction
@@ -99,21 +100,16 @@ def window(results):
     #back to long format
     window_results = window_matrix.melt(ignore_index = False,
                                          value_name = 'window_reject')
-
     window_results = window_results.reset_index()
-    print(window_results)
-    results = results.reset_index()
-    print(results)
+    print('Window Results Melted and Indexed\n', window_results)
     
     #add as column to results
     results = pd.merge(results, window_results, how = 'inner',
                        left_on = ['time', 'channel'],
                        right_on = ['time', 'channel'])
-    
-    print(results)
+    print('Results Merged\n', results)
     
     return results
-    
 
 def test_condition(window_size, density, local, cond, correction):         
     window_ms = int(window_size*1000)
@@ -143,7 +139,7 @@ def test_condition(window_size, density, local, cond, correction):
         dataframe_file = dataset + '\\' + cond + '_w.csv'
         w_results.to_csv(dataframe_file, index = False)
 
-def test():
+def test_window():
     dataset = dtm.ANALYSED_DIR
     dtm.do_dir(dataset)
     
@@ -152,7 +148,16 @@ def test():
             for l in c.LOCAL:
                 for cond in c.TEST_CONDITIONS:
                     test_condition(w,d,l,cond, 'window')
-                    #bonferroni(w,d,l,cond)
+                    
+def test_bonferroni():
+    dataset = dtm.ANALYSED_DIR
+    dtm.do_dir(dataset)
+    
+    for w in c.WINDOW_SIZE:
+        for d in c.DENSITY.keys():
+            for l in c.LOCAL:
+                for cond in c.TEST_CONDITIONS:
+                    test_condition(w,d,l,cond, 'bonferroni')
                                         
-#test_condition(0.02, 64, False, 'baseline', 'bonferroni)
+#test_condition(0.02, 64, False, 'vs_left', 'window')
     

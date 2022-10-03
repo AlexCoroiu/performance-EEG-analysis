@@ -21,7 +21,7 @@ def load_analysed(window_size, density, local, cond, test):
               
     return analysed
 
-def summary_results(w,d,l,cond, t):
+def summary_results(w,d,l,cond,t):
     analysed = load_analysed(w,d,l,cond, t)
     
     t_count = len(analysed)

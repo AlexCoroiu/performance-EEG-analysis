@@ -11,14 +11,23 @@ import exploration
 
 import preparation
 import multiple_comparisons
+import cluster_permutations
 import results
 
 # SIMULATE-ANALYSE DATA
-def run_dataset():
+def run_data():
     simulation.simulate()
-    # processing.process()
-    # preparation.prepare()
-    # multiple_comparisons.test()
-    # results.results()
+    processing.process()
+    preparation.prepare()
+     
+def run_methods():
+    multiple_comparisons.test_window()
+    multiple_comparisons.test_bonferroni()
+    cluster_permutations.test()
+    
+def run_results():
+    results.results()
 
-run_dataset()
+#RUN 
+run_data()
+#run_methods()

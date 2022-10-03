@@ -130,8 +130,7 @@ def test():
         for d in c.DENSITY.keys():
             for l in c.LOCAL:
                 for cond in c.TEST_CONDITIONS:
-                    test_condition(w,d,l,cond)
-                    #bonferroni(w,d,l,cond)    
+                    test_condition(w,d,l,cond)  
 
-test_condition(0.02, 64, False, 'difference')
+#test_condition(0.004, 86, False, 'difference')
     

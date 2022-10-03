@@ -1,0 +1,5 @@
+.spyproject/
+__pycache__/
+fs-avg-fwd.fif
+ss-src.fif
+data_*/
