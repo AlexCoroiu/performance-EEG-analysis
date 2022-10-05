@@ -5,10 +5,10 @@ import constants as c
 import numpy as np
 import pandas as pd
 import os
-import data_manager as dtm
+import file_manager as fm
 
 def load_raws():
-    dataset = dtm.RAWS_DIR
+    dataset = fm.RAWS_DIR
     raws = []
     
     for p in range(c.NR_PARTICIPANTS):
@@ -22,8 +22,8 @@ def load_raws():
     return raws
     
 def create_epos(raws):
-    dataset = dtm.EPOS_DIR
-    dtm.do_dir(dataset)
+    dataset = fm.EPOS_DIR
+    fm.do_dir(dataset)
     
     for p in range(c.NR_PARTICIPANTS):
         part = "part" + str(p + 1)
@@ -46,7 +46,7 @@ def create_epos(raws):
 
 
 def load_epos():
-    dataset = dtm.EPOS_DIR
+    dataset = fm.EPOS_DIR
     epos = []
     
     for p in range(c.NR_PARTICIPANTS):
@@ -60,8 +60,8 @@ def load_epos():
 
     
 def create_evos(epos):
-    dataset = dtm.EVOS_DIR
-    dtm.do_dir(dataset)
+    dataset = fm.EVOS_DIR
+    fm.do_dir(dataset)
     
     for p in range(c.NR_PARTICIPANTS):
         part = "part" + str(p + 1)
@@ -78,7 +78,7 @@ def create_evos(epos):
         mne.write_evokeds(evoked_file, evoked_part)
     
 def load_evos():
-    dataset = dtm.EVOS_DIR
+    dataset = fm.EVOS_DIR
     evos = []
     
     for p in range(c.NR_PARTICIPANTS):
@@ -92,7 +92,7 @@ def load_evos():
 
 def create_evo_df(evos):
     # (part, condition, time, electrode, value)
-    dataset = dtm.PROCESSING_DIR
+    dataset = fm.PROCESSING_DIR
     
     evo_dfs = []
     
@@ -124,7 +124,7 @@ def create_evo_df(evos):
     
 
 def load_evo_df():
-    dataset = dtm.PROCESSING_DIR
+    dataset = fm.PROCESSING_DIR
     
     dataframe_file = dataset + '\\evo_concat_df' + '.csv'
     evo_dataframe = pd.read_csv(dataframe_file)
@@ -134,8 +134,8 @@ def load_evo_df():
 #DATA PROCESSING
 
 def process():
-    dataset = dtm.PROCESSING_DIR
-    dtm.do_dir(dataset)
+    dataset = fm.PROCESSING_DIR
+    fm.do_dir(dataset)
     
     raws = load_raws()
     

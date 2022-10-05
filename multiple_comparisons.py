@@ -13,7 +13,7 @@ import constants as c
 import numpy as np
 import pandas as pd
 import math
-import data_manager as dtm
+import file_manager as fm
 #load prepped data
 
 #test mean == 0, 2 sided
@@ -117,8 +117,8 @@ def window(results):
 def test_condition(window_size, density, local, cond, correction):         
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
-    dataset = dtm.ANALYSED_DIR + '\\' + dir_name
-    dtm.do_dir(dataset)
+    dataset = fm.ANALYSED_DIR + '\\' + dir_name
+    fm.do_dir(dataset)
     
     #load prepped data
     data = prep.load_test_dfs(window_size, density, local) 
@@ -143,8 +143,8 @@ def test_condition(window_size, density, local, cond, correction):
         w_results.to_csv(dataframe_file, index = False)
 
 def test_window():
-    dataset = dtm.ANALYSED_DIR
-    dtm.do_dir(dataset)
+    dataset = fm.ANALYSED_DIR
+    fm.do_dir(dataset)
     
     for w in c.WINDOW_SIZE:
         for d in c.DENSITY.keys():
@@ -153,8 +153,8 @@ def test_window():
                     test_condition(w,d,l,cond, 'window')
                     
 def test_bonferroni():
-    dataset = dtm.ANALYSED_DIR
-    dtm.do_dir(dataset)
+    dataset = fm.ANALYSED_DIR
+    fm.do_dir(dataset)
     
     for w in c.WINDOW_SIZE:
         for d in c.DENSITY.keys():

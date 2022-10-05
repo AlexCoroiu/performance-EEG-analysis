@@ -8,7 +8,7 @@ Created on Tue Jun 14 13:33:27 2022
 #setup
 import mne
 import numpy as np
-import data_manager as dtm
+import file_manager as fm
 import pandas as pd
 import constants as c
 import preparation as prep
@@ -108,8 +108,8 @@ def cluster_permutations(data):
 def test_condition(window_size, density, local, cond):
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
-    dataset = dtm.ANALYSED_DIR + '\\' + dir_name
-    dtm.do_dir(dataset)
+    dataset = fm.ANALYSED_DIR + '\\' + dir_name
+    fm.do_dir(dataset)
     
     #load prepped data
     data = prep.load_test_dfs(window_size, density, local) 
@@ -123,8 +123,8 @@ def test_condition(window_size, density, local, cond):
     
 
 def test():       
-    dataset = dtm.ANALYSED_DIR
-    dtm.do_dir(dataset)
+    dataset = fm.ANALYSED_DIR
+    fm.do_dir(dataset)
     
     for w in c.WINDOW_SIZE:
         for d in c.DENSITY.keys():

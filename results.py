@@ -6,7 +6,7 @@ Created on Fri Jun 24 18:19:05 2022
 
 """
 
-import data_manager as dtm
+import file_manager as fm
 import constants as c
 import pandas as pd
 import os
@@ -14,7 +14,7 @@ import os
 def load_analysed(window_size, density, local, cond, test):
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
-    dataset = dtm.ANALYSED_DIR + '\\' + dir_name
+    dataset = fm.ANALYSED_DIR + '\\' + dir_name
     
     dataframe_file = dataset + '\\' + cond + '_' + test + '.csv'
     analysed = pd.read_csv(dataframe_file)
@@ -32,7 +32,7 @@ def summary_results(w,d,l,cond,t):
     return [w,d,l,cond, t, ch_count, t_count, t_count]
     
 def results():
-    dataset = dtm.DATA_DIR
+    dataset = fm.DATA_DIR
     
     results = []
     

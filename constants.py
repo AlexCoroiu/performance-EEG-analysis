@@ -2,23 +2,7 @@
 
 import mne
 import numpy as np
-import data_manager as dtm
-
-# SIMULATION VARIABLES
-# Change these variables to generate data with different amplitude values
-
-AMPLITUDE = (60,30) #mV (contra, ipsi)
-#40-20, 60-30, 80-40, 60-20, 80-20, 80-30
-
-#infinite impulse response filter
-NOISE_FILTER = (0.1,-0.1,0.02)
-#0.1-0.02, 0.2-0.04
-
-BAND_PASS_FILTERING = True
-
-dtm.set_up('data_amp' + str(AMPLITUDE[0]) + str(AMPLITUDE[1])
-           + '_noise' + str(NOISE_FILTER[0])
-           + '_filter' + str(BAND_PASS_FILTERING))
+import file_manager as fm
 
 # DATA SIZE
 NR_PARTICIPANTS = 20
@@ -119,24 +103,13 @@ ANNOTATION = 'aparc.a2009s'
 
 BASE_REGION = 'occipital_sup'
 
+BASE_LABEL = fm.do_label(ANNOTATION, BASE_REGION)
+
 left_hemi = 'G_occipital_sup-lh'
 right_hemi = 'G_occipital_sup-rh'
 
-ACTIVATIONS = {
-    'vs_right':
-        [(left_hemi, AMPLITUDE[0]), #contra
-         (right_hemi, AMPLITUDE[1]) #ipsi
-         ],
-    'vs_left':
-        [(left_hemi, AMPLITUDE[1]), #ipsi
-         (right_hemi, AMPLITUDE[0]) #contra
-         ]
-}
-
-BASE_LABEL = dtm.do_label(ANNOTATION, BASE_REGION)
-
-VISUAL_LABELS = {left_hemi : dtm.do_label(ANNOTATION, left_hemi),
-                 right_hemi : dtm.do_label(ANNOTATION, right_hemi)} 
+VISUAL_LABELS = {left_hemi : fm.do_label(ANNOTATION, left_hemi),
+                 right_hemi : fm.do_label(ANNOTATION, right_hemi)} 
 
 # WAVEFORM
 
@@ -163,14 +136,14 @@ AMPLITUDE_VAR_DIST = (0,2.5)
 #latency variables
 LAT_VARS_FILE = 'lat_vars.csv'
 NEW_VARS = False #should be created only once (x2 test-retest)
-LAT_VARS = dtm.do_vars(LAT_VARS_FILE, NEW_VARS, 
+LAT_VARS = fm.do_vars(LAT_VARS_FILE, NEW_VARS, 
                         NR_PARTICIPANTS, EVENTS, EVENT_NAMES, 
                         LATENCY_VAR_PART_DIST, LATENCY_VAR_DIST)
 
 #amplitude variables
 AMP_VARS_FILE = 'amp_vars.csv'
 NEW_VARS = False #should be created only once (x2 test-retest)
-AMP_VARS = dtm.do_vars(AMP_VARS_FILE, NEW_VARS, 
+AMP_VARS = fm.do_vars(AMP_VARS_FILE, NEW_VARS, 
                         NR_PARTICIPANTS, EVENTS, EVENT_NAMES, 
                         AMPLITUDE_VAR_PART_DIST, AMPLITUDE_VAR_DIST)
 
@@ -182,7 +155,7 @@ AMP_VARS = dtm.do_vars(AMP_VARS_FILE, NEW_VARS,
 #source space
 SS_SRC_FILE = 'ss-src.fif'
 NEW_SRC = False #takes some time to generate, should be created only once
-SRC = dtm.do_src(SS_SRC_FILE, NEW_SRC)
+SRC = fm.do_src(SS_SRC_FILE, NEW_SRC)
     
 #forward model
 FS_FWD_FILE = 'fs-avg-fwd.fif'
@@ -190,7 +163,7 @@ NEW_FWD = False #takes some time to generate, should be created only once
 TRANS = 'fsaverage' 
 # 'fsaverage' = built-in free surfer transformation/ None = identity matrix
 
-FWD = dtm.do_fwd(FS_FWD_FILE, NEW_FWD, TRANS, SRC, INFO)
+FWD = fm.do_fwd(FS_FWD_FILE, NEW_FWD, TRANS, SRC, INFO)
 
 # NOISE
 
@@ -224,6 +197,35 @@ LOCAL = [True, False] #only visual, or all
 
 # ANALYSIS
 SIGNIFICANCE = 0.05
+
+# SIMULATION VARIABLES
+# Change these variables to generate data with different amplitude values
+
+AMPLITUDE = None
+NOISE_FILTER = None
+BAND_PASS_FILTERING = None
+
+ACTIVATIONS = None
+
+def set_up(amplitude, noise_filter, band_pass_filtering):
+    
+    consts = globals()
+    
+    consts["AMPLITUDE"] = amplitude
+    
+    consts["ACTIVATIONS"] = {
+        'vs_right':
+            [(left_hemi, AMPLITUDE[0]), #contra
+             (right_hemi, AMPLITUDE[1]) #ipsi
+             ],
+        'vs_left':
+            [(left_hemi, AMPLITUDE[1]), #ipsi
+             (right_hemi, AMPLITUDE[0]) #contra
+             ]
+    }
+
+    consts["NOISE_FILTER"] = noise_filter
+    consts["BAND_PASS_FILTERING"] = band_pass_filtering
 
 
 

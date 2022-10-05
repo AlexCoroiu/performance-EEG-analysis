@@ -2,7 +2,7 @@ import numpy as np
 import mne
 import constants as c
 import pandas as pd
-import data_manager as dtm
+import file_manager as fm
 import matplotlib.pyplot as plt
 
 
@@ -123,8 +123,8 @@ def simulate_data(part_nr):
     return raw_sim
 
 def simulate_raws():
-    dataset = dtm.RAWS_DIR
-    dtm.do_dir(dataset)
+    dataset = fm.RAWS_DIR
+    fm.do_dir(dataset)
     
     for p in range(c.NR_PARTICIPANTS):
         part_nr = p + 1
@@ -135,8 +135,8 @@ def simulate_raws():
 
 #DATA SIMULATE    
 def simulate():
-    dataset = dtm.SIMULATION_DIR
-    dtm.do_dir(dataset)
+    dataset = fm.SIMULATION_DIR
+    fm.do_dir(dataset)
     
     #simulation
     simulate_raws()

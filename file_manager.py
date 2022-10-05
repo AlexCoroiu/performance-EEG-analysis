@@ -10,56 +10,6 @@ import mne
 import random
 import pandas as pd
 
-#FILE STRUCTURE
-   
-DATA_DIR = ""
-
-#simulation
-SIMULATION_DIR = ""
-RAWS_DIR = ""
-
-# processing
-PROCESSING_DIR = ""
-EPOS_DIR = ""
-EVOS_DIR = ""
-EVO_DFS_DIR = ""
-
-# preparation
-PREPARATION_DIR = ""
-DATA_POINTS = ""
-
-#analysis & results
-ANALYSED_DIR = ""
-
-def do_dir(dataset):
-    if not os.path.exists(dataset):
-        os.mkdir(dataset)
-
-def set_up(dataset):
-    
-    dirs = globals()
-    
-    dirs['DATA_DIR'] = dataset
-    do_dir(DATA_DIR)
-
-    # simulation
-    dirs['SIMULATION_DIR'] = DATA_DIR + '\\' + "simulated"
-    dirs['RAWS_DIR'] = SIMULATION_DIR + '\\' + "raws"
-    
-    # processing
-    dirs['PROCESSING_DIR'] = DATA_DIR + '\\' + "processed"
-    dirs['EPOS_DIR'] = PROCESSING_DIR + '\\' + "epos"
-    dirs['EVOS_DIR'] = PROCESSING_DIR + '\\' + "evos"
-    dirs['EVO_DFS_DIR'] = PROCESSING_DIR + '\\' + "evo_dfs"
-    
-    # preparation
-    dirs['PREPARATION_DIR'] = DATA_DIR + '\\' + "prepared"
-    #dirs['DATA_POINTS'] = DATA_DIR + '\\' + "dps"
-    
-    # analysis
-    dirs['ANALYSED_DIR'] = DATA_DIR + '\\' + "analysed"
-    
-    # results
     
 #MNE DATA
 
@@ -155,4 +105,54 @@ def do_vars(file, new, nr_parts, events, event_names,
         
     return gen_vars
     
+#RUN VARIABLES
+#FILE STRUCTURE
+   
+DATA_DIR = ""
+
+#simulation
+SIMULATION_DIR = ""
+RAWS_DIR = ""
+
+# processing
+PROCESSING_DIR = ""
+EPOS_DIR = ""
+EVOS_DIR = ""
+EVO_DFS_DIR = ""
+
+# preparation
+PREPARATION_DIR = ""
+DATA_POINTS = ""
+
+#analysis & results
+ANALYSED_DIR = ""
+
+def do_dir(dataset):
+    if not os.path.exists(dataset):
+        os.mkdir(dataset)
+
+def set_up(dataset):
     
+    dirs = globals()
+    
+    dirs['DATA_DIR'] = dataset
+    do_dir(DATA_DIR)
+
+    # simulation
+    dirs['SIMULATION_DIR'] = DATA_DIR + '\\' + "simulated"
+    dirs['RAWS_DIR'] = SIMULATION_DIR + '\\' + "raws"
+    
+    # processing
+    dirs['PROCESSING_DIR'] = DATA_DIR + '\\' + "processed"
+    dirs['EPOS_DIR'] = PROCESSING_DIR + '\\' + "epos"
+    dirs['EVOS_DIR'] = PROCESSING_DIR + '\\' + "evos"
+    dirs['EVO_DFS_DIR'] = PROCESSING_DIR + '\\' + "evo_dfs"
+    
+    # preparation
+    dirs['PREPARATION_DIR'] = DATA_DIR + '\\' + "prepared"
+    #dirs['DATA_POINTS'] = DATA_DIR + '\\' + "dps"
+    
+    # analysis
+    dirs['ANALYSED_DIR'] = DATA_DIR + '\\' + "analysed"
+    
+    # results

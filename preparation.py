@@ -7,14 +7,14 @@ Created on Tue Jun 14 15:36:41 2022
 
 import constants as c
 import pandas as pd
-import data_manager as dtm
+import file_manager as fm
 import processing as pross
 
 def prepare_test_dfs(df, window_size, density, local):
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
-    dataset = dtm.PREPARATION_DIR + '\\' + dir_name
-    dtm.do_dir(dataset)
+    dataset = fm.PREPARATION_DIR + '\\' + dir_name
+    fm.do_dir(dataset)
     
     #select time windows
     df = df[df['time'] % window_ms == 0]
@@ -40,7 +40,7 @@ def prepare_test_dfs(df, window_size, density, local):
 def load_test_dfs(window_size, density, local):
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
-    dataset = dtm.PREPARATION_DIR + '\\' + dir_name
+    dataset = fm.PREPARATION_DIR + '\\' + dir_name
     
     loaded = {}
     
@@ -53,8 +53,8 @@ def load_test_dfs(window_size, density, local):
     return loaded
     
 def prepare():
-    dataset = dtm.PREPARATION_DIR 
-    dtm.do_dir(dataset)
+    dataset = fm.PREPARATION_DIR 
+    fm.do_dir(dataset)
     
     df = pross.load_evo_df()
         
