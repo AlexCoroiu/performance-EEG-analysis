@@ -104,7 +104,7 @@ def create_evo_df(evos):
         
         for evo in evo_part:
             
-            df = evo.to_data_frame(long_format = True)
+            df = evo.to_data_frame(long_format = True, time_format = 'ms')
             condition = evo.comment
             df['part'] = nr
             df['condition'] = condition

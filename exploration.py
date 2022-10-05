@@ -133,11 +133,11 @@ def explore_mne():
     mne_part_level(0, raws, epos, evos) #part 1
     
 def explore():
-    explore_sim_variables()
-    #explore_mne()
+    #explore_sim_variables()
+    explore_mne()
     
 
-explore()
+#explore()
     
     
     

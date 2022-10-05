@@ -16,7 +16,7 @@ import results
 
 # SIMULATE-ANALYSE DATA
 def run_data():
-    simulation.simulate()
+    #simulation.simulate()
     processing.process()
     preparation.prepare()
      
@@ -29,5 +29,5 @@ def run_results():
     results.results()
 
 #RUN 
-run_data()
-#run_methods()
+#run_data()
+run_methods()

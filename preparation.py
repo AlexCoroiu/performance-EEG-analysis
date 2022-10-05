@@ -10,19 +10,15 @@ import pandas as pd
 import data_manager as dtm
 import processing as pross
 
-def prepare_test_dfs(df, window, density, local):
-    window_ms = int(window*1000)
+def prepare_test_dfs(df, window_size, density, local):
+    window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
     dataset = dtm.PREPARATION_DIR + '\\' + dir_name
     dtm.do_dir(dataset)
     
     #select time windows
-    
-    print('Dataframe pre-windowed\n',df)
-    df = df[(df['time'] % window_ms) == 0] #!!!
-    
-    print('Dataframe windowed\n', df)
-    
+    df = df[df['time'] % window_ms == 0]
+
     #select electrodes
     electrodes = c.DENSITY[density]
     
