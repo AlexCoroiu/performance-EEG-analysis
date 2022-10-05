@@ -22,8 +22,8 @@ def run_data():
      
 def run_methods():
     multiple_comparisons.test_window()
-    multiple_comparisons.test_bonferroni()
-    cluster_permutations.test()
+    #multiple_comparisons.test_bonferroni()
+    #cluster_permutations.test()
     
 def run_results():
     results.results()

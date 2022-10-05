@@ -16,11 +16,12 @@ def prepare_test_dfs(df, window, density, local):
     dataset = dtm.PREPARATION_DIR + '\\' + dir_name
     dtm.do_dir(dataset)
     
-    # print(df.head(5))
-    # print(df.index)
-    
     #select time windows
-    df = df[(df['time'] % window_ms) == 0]
+    
+    print('Dataframe pre-windowed\n',df)
+    df = df[(df['time'] % window_ms) == 0] #!!!
+    
+    print('Dataframe windowed\n', df)
     
     #select electrodes
     electrodes = c.DENSITY[density]

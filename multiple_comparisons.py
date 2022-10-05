@@ -64,6 +64,9 @@ def window(results):
     electrodes = results['channel'].unique()
     nr_electrodes = len(electrodes)
     
+    # print('Nr. windows', nr_windows)
+    # print('Nr. electrodes', nr_electrodes)
+    
     #crit p correction
     crit_p = math.sqrt(c.SIGNIFICANCE/((nr_windows-1)*nr_electrodes))
     print('Critical P-Value', crit_p)
