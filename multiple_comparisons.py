@@ -72,7 +72,7 @@ def window(results):
     print('Critical P-Value', crit_p)
     results = crit_p_correction(results, crit_p)
     
-    #window window correction
+    #window correction
     
     #create window x electrode matrix
     matrix = results.pivot(index = 'time',
@@ -124,9 +124,9 @@ def test_condition(window_size, density, local, cond, correction):
     data = prep.load_test_dfs(window_size, density, local) 
     data_cond = data[cond]
 
+    results = multiple_comparison(data_cond)
+    
     if correction == 'bonferroni':
-        #bonferroni
-        results = multiple_comparison(data_cond)
         b_results = bonferroni(results)  
         b_results = b_results[b_results['bonferroni_reject'] == True]
         #save
@@ -134,15 +134,13 @@ def test_condition(window_size, density, local, cond, correction):
         b_results.to_csv(dataframe_file, index = False)
 
     elif correction == 'window':
-        #window
-        results = multiple_comparison(data_cond)
         w_results = window(results)
         w_results = w_results[w_results['window_reject'] == True]
         #save
         dataframe_file = dataset + '\\' + cond + '_w.csv'
         w_results.to_csv(dataframe_file, index = False)
-
-def test_window():
+                
+def test(correction):
     dataset = fm.ANALYSED_DIR
     fm.do_dir(dataset)
     
@@ -150,17 +148,13 @@ def test_window():
         for d in c.DENSITY.keys():
             for l in c.LOCAL:
                 for cond in c.TEST_CONDITIONS:
-                    test_condition(w,d,l,cond, 'window')
+                    test_condition(w,d,l,cond,correction)
+                    
+def test_window():
+    test('window')
                     
 def test_bonferroni():
-    dataset = fm.ANALYSED_DIR
-    fm.do_dir(dataset)
-    
-    for w in c.WINDOW_SIZE:
-        for d in c.DENSITY.keys():
-            for l in c.LOCAL:
-                for cond in c.TEST_CONDITIONS:
-                    test_condition(w,d,l,cond, 'bonferroni')
+    test('bonferroni')
                                         
 #test_condition(0.02, 64, False, 'vs_left', 'window')
     

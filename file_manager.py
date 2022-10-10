@@ -131,7 +131,11 @@ def do_dir(dataset):
     if not os.path.exists(dataset):
         os.mkdir(dataset)
 
-def set_up(dataset):
+def set_up(amplitude, noise_filter, band_pass_filtering):
+    
+    dataset = ('data_amp' + str(amplitude[0]) + str(amplitude[1]) 
+               +'_noise' + str(noise_filter[0]) 
+               + '_filter' + str(band_pass_filtering))
     
     dirs = globals()
     

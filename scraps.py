@@ -276,3 +276,11 @@ reject ('null hypothesis'):
 #                                         names = ['time', 'channel'])
     
 # results = pd.DataFrame(index = multids)
+
+
+"""
+    
+    # t_count = len(analysed)
+    # ch_count = len(analysed['channel'].unique())
+    # t_count = len(analysed['time'].unique())
+"""
