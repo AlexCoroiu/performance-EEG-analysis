@@ -9,11 +9,8 @@ Created on Fri Jun 24 18:19:05 2022
 import file_manager as fm
 import constants as c
 import pandas as pd
+import math
 
-
-#TODO load results here (from all 3 methods?) OR
-# have separate laod fucntions in the separate method files from analysis 
-# (as per structure up to analysis)
 def load_analysed(window_size, density, local, cond, method):
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
@@ -29,7 +26,7 @@ def summary_results(window_size,density,local,cond,method):
 
     #total tests performed
     window_ms = int(window_size*1000)
-    time = (c.INTERVAL_MAX - c.INTERVAL_MIN)/window_ms #TODO make int with round down
+    time = math.floor((c.TEST_INTERVAL_MAX - c.TEST_INTERVAL_MIN)/window_ms) #rounded down
     electrodes =  density
     if local:
         electrodes = c.DENSITY[density]
@@ -38,15 +35,32 @@ def summary_results(window_size,density,local,cond,method):
     total = time * electrodes
     
     #significant tests
-    analysed = load_analysed(window_size,density,local,cond,method)
-    total_sig = len(analysed)
+    sig = load_analysed(window_size,density,local,cond,method)
+    sig_count = len(sig)
     
     #TP
+    #expected time interval
+    tp = sig[(sig['time'] <= c.SIG_INTERVAL_MAX) &
+             (sig['time'] >= c.SIG_INTERVAL_MIN)] #must use bti wise boolean logic operators
     
-    #TN
+    #expected electrode location
+    tp = tp[tp['channel'].isin(c.CHANNELS_VISUAL)]
     
-    #TODO add TP, TN, calcualte precision
-    return [window_size, density, local, cond, method, total, total_sig] 
+    tp_count = len(tp)
+    
+    #FP
+    fp_count = sig_count - tp_count 
+    fp_count = 0
+    
+    #precision
+    if sig_count != 0:
+        precision = tp_count/sig_count
+    else:
+        precision = 0
+    
+
+    return [window_size, density, local, cond, method, total, 
+            sig_count, tp_count, fp_count, precision] 
     
 #do for all in dataset
 
@@ -64,18 +78,16 @@ def results_mc(method):
                     results.append(result)
                     
     results_df = pd.DataFrame(results, 
-                              columns =['window_size', 'density', 'local', 
+                              columns =['window_size', 'density', 'location', 
                                         'condition', 'method', 'total', 
-                                        'total_significant'])
-    """   
-        , 'TP', 'FP', 
-        'precision'
-    """
+                                        'total_significant','TP', 'FP', 
+                                        'precision'])
+
     
     dataframe_file = dataset + '\\results_' + method + '.csv'
     results_df.to_csv(dataframe_file, index = False)
     
-    return results #for future list operatiosn (e.g. extend)
+    return results_df #for future list operatiosn (e.g. extend)
     
 def results_mc_window():
     return results_mc('w')
@@ -84,17 +96,14 @@ def results_mc_bonferroni():
     return results_mc('b')
     
 #cluster permutations resutls
+#TODO how to combine mc wiht cp results?
 #def results_cp():
     
-                    
 #print(summary_results(0.02,86, True, 'baseline', 'w'))
 
-#TODO restructure results data 
-#(windoes size, electrodes number, electrodes positions, sig data points # / test cond) 
-#--> for each entry have a separate table with (count, time, location)
+#TODO electrodes positions, timeframe "clusters"?
 
 
-#TODO how to combien reuslts from the 3 different methods?
 
 
 

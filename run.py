@@ -29,10 +29,14 @@ def run_methods():
     cluster_permutations.test()
     
 def run_results():
-    res = []
-    res.extend(results.results_mc_window())
-    res.extend(results.results_mc_bonferroni())
+    res_dfs = []
+    res_dfs.append(results.results_mc_window())
+    res_dfs.append(results.results_mc_bonferroni())
     #res.extend(results.results_cp())
+    
+    #concat all results
+    res = pd.concat(res_dfs, axis=0)
+    print('res df\n', res)
     return res
     
 def run_dataset(amplitude, noise_filter, band_pass_filtering):
@@ -51,8 +55,7 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
     
     return res
 
-    
-#run_dataset((60,30), (0.1,-0.1,0.02), True)
+run_dataset((60,30), (0.1,-0.1,0.02), True)
 
 #RUN ALL DATASETS
     
@@ -69,23 +72,25 @@ def run():
             for bpf in band_pass_filtering:
                 res = run_dataset(amp, nf, bpf)
                 
-                #TODO append with extra vars for all
-                res['amplitude'] = amp
-                res['noise_filter'] = nf
-                res['band_pass'] = bpf
+                res['amplitude'] = str(amp[0]) + str(amp[1]) 
+                res['noise_filter'] = str(nf[0]) 
+                res['band_pass'] = str(bpf)
                 
                 final_results.append(res) 
                 
     #save cummulated results to df
-    results_df = pd.DataFrame(results, 
-                              columns =['amplitude', 'noise_filter', 'band_pass',
-                                        'window_size', 'density', 'location', 
-                                        'condition', 'method', 'total', 
-                                        'total_significant', 'TP', 'FP', 
-                                        'precision'])
+    results_df = pd.concat(final_results, axis=0)
     
+    columns = ['amplitude', 'noise_filter', 'band_pass',
+                'window_size', 'density', 'location', 
+                'condition', 'method', 'total', 
+                'total_significant', 'TP', 'FP', 
+                'precision']
+
+    results_df = results_df[columns]
+
     dataframe_file = 'final_results.csv'
     results_df.to_csv(dataframe_file, index = False)
 
-run()
+#run()
 #exploration.explore() #needs setup beforehand

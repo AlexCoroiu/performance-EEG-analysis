@@ -36,7 +36,6 @@ def prepare_test_dfs(df, window_size, density, local):
         dataframe_file = dataset + '\\' + cond + '.csv'
         cond_df.to_csv(dataframe_file, index = False)
     
-    
 def load_test_dfs(window_size, density, local):
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
@@ -58,8 +57,9 @@ def prepare():
     
     df = pross.load_evo_df()
         
-    #select post stimulus time interval
-    df = df[df['time'] >= c.INTERVAL_MIN and df['time'] <= c.INTERVAL_MAX]
+    #select post stimulus time interval 0 to 500
+    df = df[df['time'] >= c.TEST_INTERVAL_MIN & 
+            df['time'] <= c.TEST_INTERVAL_MAX]
     
     #format wide
     df = df.pivot(index=['part','time','channel'], 

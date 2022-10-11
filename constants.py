@@ -199,8 +199,12 @@ LOCAL = [True, False] #only visual, or all
 SIGNIFICANCE = 0.05
 
 #tested inerval
-INTERVAL_MIN = 0
-INTERVAL_MAX = 500 #TODO check time unit
+TEST_INTERVAL_MIN = 0
+TEST_INTERVAL_MAX = 500 
+
+#TODO signal interval
+SIG_INTERVAL_MIN = 100
+SIG_INTERVAL_MAX = 250
 
 # SIMULATION VARIABLES
 # Change these variables to generate data with different amplitude values
