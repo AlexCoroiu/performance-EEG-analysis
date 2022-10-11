@@ -32,7 +32,7 @@ def run_results():
     res_dfs = []
     res_dfs.append(results.results_mc_window())
     res_dfs.append(results.results_mc_bonferroni())
-    #res.extend(results.results_cp())
+    res_dfs.append(results.results_cp())
     
     #concat all results
     res = pd.concat(res_dfs, axis=0)
@@ -55,7 +55,7 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
     
     return res
 
-run_dataset((60,30), (0.1,-0.1,0.02), True)
+#run_dataset((60,30), (0.1,-0.1,0.02), True)
 
 #RUN ALL DATASETS
     
@@ -92,5 +92,5 @@ def run():
     dataframe_file = 'final_results.csv'
     results_df.to_csv(dataframe_file, index = False)
 
-#run()
+run()
 #exploration.explore() #needs setup beforehand
