@@ -2,9 +2,7 @@
 
 import mne
 import constants as c
-import numpy as np
 import pandas as pd
-import os
 import file_manager as fm
 
 def load_raws():

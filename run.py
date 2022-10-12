@@ -26,13 +26,13 @@ def run_data():
 def run_methods():
     multiple_comparisons.test_window()
     multiple_comparisons.test_bonferroni()
-    cluster_permutations.test()
+    #cluster_permutations.test()
     
 def run_results():
     res_dfs = []
     res_dfs.append(results.results_mc_window())
     res_dfs.append(results.results_mc_bonferroni())
-    res_dfs.append(results.results_cp())
+    #res_dfs.append(results.results_cp())
     
     #concat all results
     res = pd.concat(res_dfs, axis=0)
@@ -84,7 +84,8 @@ def run():
     columns = ['amplitude', 'noise_filter', 'band_pass',
                 'window_size', 'density', 'location', 
                 'condition', 'method', 'total', 
-                'total_significant', 'TP', 'FP', 
+                'total_P', 'TP', 'FP', 
+                'total_N', 'TN', 'FN',
                 'precision']
 
     results_df = results_df[columns]

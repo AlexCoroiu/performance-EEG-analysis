@@ -1,7 +1,6 @@
 import numpy as np
 import mne
 import constants as c
-import pandas as pd
 import file_manager as fm
 import matplotlib.pyplot as plt
 

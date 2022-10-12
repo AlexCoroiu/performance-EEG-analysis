@@ -10,7 +10,6 @@ import mne
 import scipy.stats
 import preparation as prep
 import constants as c
-import numpy as np
 import pandas as pd
 import math
 import file_manager as fm
@@ -47,6 +46,7 @@ def bonferroni(results):
     reject, pval_corrected = mne.stats.bonferroni_correction(results['p_val'], 
                                                              alpha = c.SIGNIFICANCE)
     results['bonferroni_reject'] = reject
+    results['significant'] = results['bonferroni_reject'] #null hypothesis was rejected
 
     return results
     
@@ -112,6 +112,8 @@ def window(results):
                        right_on = ['time', 'channel'])
     print('Results Merged\n', results)
     
+    results['significant'] = results['window_reject'] #null hypothesis was rejected
+    
     return results
 
 def test_condition(window_size, density, local, cond, correction):         
@@ -128,14 +130,14 @@ def test_condition(window_size, density, local, cond, correction):
     
     if correction == 'bonferroni':
         b_results = bonferroni(results)  
-        b_results = b_results[b_results['bonferroni_reject'] == True]
+        #b_results = b_results[b_results['bonferroni_reject'] == True]
         #save
         dataframe_file = dataset + '\\' + cond + '_b.csv'
         b_results.to_csv(dataframe_file, index = False)
 
     elif correction == 'window':
         w_results = window(results)
-        w_results = w_results[w_results['window_reject'] == True]
+        #w_results = w_results[w_results['window_reject'] == True]
         #save
         dataframe_file = dataset + '\\' + cond + '_w.csv'
         w_results.to_csv(dataframe_file, index = False)

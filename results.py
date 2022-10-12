@@ -21,9 +21,28 @@ def load_analysed(window_size, density, local, cond, method):
               
     return analysed
 
+def extract_actual(predicted):
+    predicted_count = len(predicted)
+    
+    #actual positives found in predicted values
+    #expected time interval
+    positives = predicted[(predicted['time'] <= c.SIG_INTERVAL_MAX) &
+                          (predicted['time'] >= c.SIG_INTERVAL_MIN)] #must use bit wise boolean logic operators
+    
+    #expected electrode location
+    positives = positives[positives['channel'].isin(c.CHANNELS_VISUAL)]
+    
+    positives_count = len(positives)
+    
+    #actual negatives found in predicted values
+    negatives_count = predicted_count - positives_count 
+    
+    return (predicted_count, positives_count, negatives_count)
+
 #do calcualtions and add to data
 def summary_results_mc(window_size,density,local,cond,method):
 
+    #TODO diff way to calcualte total and crit p val
     #total tests performed
     window_ms = int(window_size*1000)
     time = math.floor((c.TEST_INTERVAL_MAX - c.TEST_INTERVAL_MIN)/window_ms) #rounded down
@@ -33,35 +52,35 @@ def summary_results_mc(window_size,density,local,cond,method):
         electrodes = len(list(set(electrodes) & set(c.CHANNELS_VISUAL)))
 
     total = time * electrodes
+
+    #CONFUSION MATRIX
+    analysed = load_analysed(window_size,density,local,cond,method)
     
-    #significant tests
-    sig = load_analysed(window_size,density,local,cond,method)
-    sig_count = len(sig)
+    #significant test results
+    predicted_positive = analysed[analysed['significant'] == True] 
+    P_count, TP_count, FP_count = extract_actual(predicted_positive)
     
-    #TP
-    #expected time interval
-    tp = sig[(sig['time'] <= c.SIG_INTERVAL_MAX) &
-             (sig['time'] >= c.SIG_INTERVAL_MIN)] #must use bti wise boolean logic operators
+    #non significant test results
+    predicted_negative = analysed[analysed['significant'] == False]   
+    N_count, FN_count, TN_count = extract_actual(predicted_negative) 
     
-    #expected electrode location
-    tp = tp[tp['channel'].isin(c.CHANNELS_VISUAL)]
-    
-    tp_count = len(tp)
-    
-    #FP
-    fp_count = sig_count - tp_count 
-    fp_count = 0
+    #METRICS 
     
     #precision
-    if sig_count != 0:
-        precision = tp_count/sig_count
+    if P_count != 0:
+        precision = TP_count/P_count
     else:
         precision = 0
+        
+    #TODO other metrics
     
     return [window_size, density, local, cond, method, total, 
-            sig_count, tp_count, fp_count, precision] 
-    
+            P_count, TP_count, FP_count, 
+            N_count, TN_count, FN_count,
+            precision] 
 
+
+#TODO total clusters, TN, FN
 def summary_results_cp(window_size,density,local,cond):
     
     sig = load_analysed(window_size,density,local,cond,'cp')
@@ -92,6 +111,10 @@ def summary_results_cp(window_size,density,local,cond):
     #FP
     fp_count = sig_count - tp_count
     
+    #TN
+    
+    #FN
+    
     #precision
     if sig_count != 0:
         precision = tp_count/sig_count
@@ -119,7 +142,8 @@ def results_mc(method):
     results_df = pd.DataFrame(results, 
                               columns =['window_size', 'density', 'location', 
                                         'condition', 'method', 'total', 
-                                        'total_significant','TP', 'FP', 
+                                        'total_P','TP', 'FP', 
+                                        'total_N', 'TN', 'FN',
                                         'precision'])
 
     
@@ -151,7 +175,7 @@ def results_cp(): #redundant code but oh well
     results_df = pd.DataFrame(results, 
                               columns =['window_size', 'density', 'location', 
                                         'condition', 'method', 'total', 
-                                        'total_significant','TP', 'FP', 
+                                        'total_P','TP', 'FP', 
                                         'precision'])
 
     
@@ -161,8 +185,6 @@ def results_cp(): #redundant code but oh well
     return results_df 
     
 #print(summary_results(0.02,86, True, 'baseline', 'w'))
-
-#TODO electrodes positions, timeframe "clusters"?
 
 
 
