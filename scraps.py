@@ -284,3 +284,15 @@ reject ('null hypothesis'):
     # ch_count = len(analysed['channel'].unique())
     # t_count = len(analysed['time'].unique())
 """
+
+
+#diff way to calcualte total and crit p val
+#total tests performed
+# window_ms = int(window_size*1000)
+# time = math.floor((c.TEST_INTERVAL_MAX - c.TEST_INTERVAL_MIN)/window_ms) #rounded down
+# electrodes =  density
+# if local:
+#     electrodes = c.DENSITY[density]
+#     electrodes = len(list(set(electrodes) & set(c.CHANNELS_VISUAL)))
+
+# total = time * electrodes

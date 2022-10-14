@@ -50,7 +50,7 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
 
     #RUN 
     #run_data()
-    #run_methods()
+    run_methods()
     res = run_results()
     
     return res

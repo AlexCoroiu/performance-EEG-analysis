@@ -42,20 +42,15 @@ def extract_actual(predicted):
 #do calcualtions and add to data
 def summary_results_mc(window_size,density,local,cond,method):
 
-    #TODO diff way to calcualte total and crit p val
-    #total tests performed
-    window_ms = int(window_size*1000)
-    time = math.floor((c.TEST_INTERVAL_MAX - c.TEST_INTERVAL_MIN)/window_ms) #rounded down
-    electrodes =  density
-    if local:
-        electrodes = c.DENSITY[density]
-        electrodes = len(list(set(electrodes) & set(c.CHANNELS_VISUAL)))
-
-    total = time * electrodes
-
-    #CONFUSION MATRIX
     analysed = load_analysed(window_size,density,local,cond,method)
     
+    #total tests
+    total = len(analysed)
+    
+    #crit_p
+    crit_p_val = analysed['crit_p_val'].values[0]
+    
+    #CONFUSION MATRIX
     #significant test results
     predicted_positive = analysed[analysed['significant'] == True] 
     P_count, TP_count, FP_count = extract_actual(predicted_positive)
@@ -74,7 +69,8 @@ def summary_results_mc(window_size,density,local,cond,method):
         
     #TODO other metrics
     
-    return [window_size, density, local, cond, method, total, 
+    return [window_size, density, local, cond, method, 
+            crit_p_val, total, 
             P_count, TP_count, FP_count, 
             N_count, TN_count, FN_count,
             precision] 
@@ -122,7 +118,9 @@ def summary_results_cp(window_size,density,local,cond):
         precision = 0
     
     total = None
-    return [window_size, density, local, cond, 'cp', total, 
+    crit_p_val = None
+    return [window_size, density, local, cond, 'cp', 
+            crit_p_val, total, 
             sig_count, tp_count, fp_count, precision] 
     
 
@@ -141,7 +139,8 @@ def results_mc(method):
                     
     results_df = pd.DataFrame(results, 
                               columns =['window_size', 'density', 'location', 
-                                        'condition', 'method', 'total', 
+                                        'condition', 'method', 
+                                        'crit_p_val', 'total', 
                                         'total_P','TP', 'FP', 
                                         'total_N', 'TN', 'FN',
                                         'precision'])

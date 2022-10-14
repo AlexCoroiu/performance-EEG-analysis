@@ -43,15 +43,20 @@ def multiple_comparison(data):
 
     
 def bonferroni(results):
+    crit_p_val = c.SIGNIFICANCE/(len(results))
+    results['crit_p_val'] = crit_p_val #save crit p value
+    
     reject, pval_corrected = mne.stats.bonferroni_correction(results['p_val'], 
                                                              alpha = c.SIGNIFICANCE)
     results['bonferroni_reject'] = reject
-    results['significant'] = results['bonferroni_reject'] #null hypothesis was rejected
 
     return results
     
 
-def crit_p_correction(results, crit_p):
+def crit_p_correction(results, nr_windows, nr_electrodes):
+    crit_p = math.sqrt(c.SIGNIFICANCE/((nr_windows-1)*nr_electrodes))
+    results['crit_p_val'] = crit_p #save crit p value
+    
     reject = [ p < crit_p for p in results['p_val']]
     results['crit_p_reject'] = reject
     
@@ -68,9 +73,7 @@ def window(results):
     # print('Nr. electrodes', nr_electrodes)
     
     #crit p correction
-    crit_p = math.sqrt(c.SIGNIFICANCE/((nr_windows-1)*nr_electrodes))
-    print('Critical P-Value', crit_p)
-    results = crit_p_correction(results, crit_p)
+    results = crit_p_correction(results, nr_windows, nr_electrodes)
     
     #window correction
     
@@ -111,9 +114,7 @@ def window(results):
                        left_on = ['time', 'channel'],
                        right_on = ['time', 'channel'])
     print('Results Merged\n', results)
-    
-    results['significant'] = results['window_reject'] #null hypothesis was rejected
-    
+
     return results
 
 def test_condition(window_size, density, local, cond, correction):         
@@ -130,14 +131,14 @@ def test_condition(window_size, density, local, cond, correction):
     
     if correction == 'bonferroni':
         b_results = bonferroni(results)  
-        #b_results = b_results[b_results['bonferroni_reject'] == True]
+        b_results['significant'] = b_results['bonferroni_reject'] #null hypothesis was rejected
         #save
         dataframe_file = dataset + '\\' + cond + '_b.csv'
         b_results.to_csv(dataframe_file, index = False)
 
     elif correction == 'window':
         w_results = window(results)
-        #w_results = w_results[w_results['window_reject'] == True]
+        w_results['significant'] = w_results['window_reject'] #null hypothesis was rejected
         #save
         dataframe_file = dataset + '\\' + cond + '_w.csv'
         w_results.to_csv(dataframe_file, index = False)
