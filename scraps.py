@@ -479,3 +479,22 @@ N_count, FN_count, TN_count = extract_actual_cp(predicted_negative)
 precision = calcualte_metrics(P_count, TP_count, FP_count, 
                               N_count, TN_count, FN_count)
 """
+
+
+"""
+
+HOW THE CONFUSION MATRIX TAKES LABELS
+
+confusion_matrix = sklearn.metrics.confusion_matrix([False, True, True], #expected
+                                                    [True, False, True], #found
+                                                    labels = [True, False]) #labels(negative, positive)
+
+(TN, FP, FN, TP) = confusion_matrix.ravel()
+
+print(confusion_matrix)
+print(confusion_matrix.ravel())
+
+#TN, FP
+#FN, TP
+
+"""

@@ -118,7 +118,6 @@ def cluster_permutations(data):
     
     return results_df
     
-    
 
 def test_condition(window_size, density, local, cond):
     window_ms = int(window_size*1000)

@@ -24,8 +24,8 @@ def run_data():
     preparation.prepare()
      
 def run_methods():
-    #multiple_comparisons.test_window()
-    #multiple_comparisons.test_bonferroni()
+    multiple_comparisons.test_window()
+    multiple_comparisons.test_bonferroni()
     cluster_permutations.test()
     
 def run_results():
@@ -50,7 +50,7 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
 
     #RUN 
     #run_data()
-    run_methods()
+    #run_methods()
     res = run_results()
     
     return res
@@ -85,9 +85,8 @@ def run():
                 'window_size', 'density', 'location', 
                 'condition', 'method', 
                 'crit_p_val', 'total',
-                'TP', 'FP', 
-                'TN', 'FN',
-                'precision']
+                'TP', 'FP', 'TN', 'FN',
+                'precision', 'recall', 'F1']
 
     results_df = results_df[columns]
 

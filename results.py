@@ -51,14 +51,18 @@ def get_metrics(expected, found):
                                                         found, 
                                                         labels = [False, True])
     
-    (TN_count, FP_count, FN_count, TP_count) = confusion_matrix.ravel()
+    (TN, FP, FN, TP) = confusion_matrix.ravel()
+    
     
     #metrics
-    precision = sklearn.metrics.precision_score(expected,found, zero_division = 0)
+    def div(n,d):
+        return n/d if d else 0
     
-    return (TN_count, FP_count, 
-            FN_count, TP_count, 
-            precision)
+    precision = div(TP,TP+FP)  #type I error FN
+    recall = div(TP,TP+FN) #type II error FN
+    f1 = 2*div(precision*recall, precision + recall)
+    
+    return (TN, FP, FN, TP, precision, recall, f1)
     
 
 #do calcualtions and add to data
@@ -75,17 +79,15 @@ def summary_results_mc(window_size,density,local,cond,method):
     #CONFUSION MATRIX & METRICS
     analysed['expected'] = true_signal_mc(analysed)
     
-    (TN_count, FP_count, 
-     FN_count, TP_count, 
-     precision) = get_metrics(analysed['expected'],
+    (TN_count, FP_count, FN_count, TP_count, 
+     precision, recall, F1) = get_metrics(analysed['expected'],
                  analysed['significant'])
     
     return [window_size, density, local, 
             cond, method, 
             crit_p_val, total, 
-            TP_count, FP_count, 
-            TN_count, FN_count,
-            precision] 
+            TP_count, FP_count, TN_count, FN_count,
+            precision, recall, F1] 
 
 
 def summary_results_cp(window_size,density,local,cond):
@@ -104,18 +106,16 @@ def summary_results_cp(window_size,density,local,cond):
     #CONFUSION MATRIX
     analysed['expected'] = true_signal_cp(analysed)
     
-    (TN_count, FP_count, 
-     FN_count, TP_count, 
-     precision) = get_metrics(analysed['expected'],
-                 analysed['significant'])
+    (TN_count, FP_count, FN_count, TP_count, 
+     precision, recall, F1) = get_metrics(analysed['expected'],
+                                          analysed['significant'])
     
     #save
     return [window_size, density, local, 
             cond, 'cp', 
             crit_p_val, total, 
-            TP_count, FP_count, 
-            TN_count, FN_count,
-            precision] 
+            TP_count, FP_count, TN_count, FN_count,
+            precision, recall, F1] 
     
 #multiple comaprisons results for all method params
 def results_mc(method):
@@ -134,9 +134,8 @@ def results_mc(method):
                               columns =['window_size', 'density', 'location', 
                                         'condition', 'method', 
                                         'crit_p_val', 'total', 
-                                        'TP', 'FP', 
-                                        'TN', 'FN',
-                                        'precision'])
+                                        'TP', 'FP', 'TN', 'FN',
+                                        'precision', 'recall', 'F1'])
 
     
     dataframe_file = dataset + '\\results_' + method + '.csv'
@@ -168,9 +167,8 @@ def results_cp(): #redundant code but oh well
                               columns =['window_size', 'density', 'location', 
                                         'condition', 'method', 
                                         'crit_p_val','total', 
-                                        'TP', 'FP',
-                                        'TN', 'FN',
-                                        'precision'])
+                                        'TP', 'FP', 'TN', 'FN',
+                                        'precision', 'recall', 'F1'])
 
     
     dataframe_file = dataset + '\\results_cp.csv'
