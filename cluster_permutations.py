@@ -58,21 +58,22 @@ def cluster_permutations(data):
                                                                                                   adjacency = adjacency,
                                                                                                   out_type = 'mask')
     
-    #select significant clusters
-    sig_clusters_ids = np.where(p_val_clusters < c.SIGNIFICANCE)[0]
-    sig_clusters = [clusters[i] for i in sig_clusters_ids]
+    #print('Clusters\n', clusters)
+    #print('P_vals\n', p_val_clusters)
     
-    print(sig_clusters)
+    results = []
     
-    results = pd.DataFrame(columns = ['time', 'channel'])
-    print(results) #empty df
-
-    i = 1
-
-    for cluster in sig_clusters:
-        print(cluster.shape)
+    #id lists
+    cluster_ids = range(len(clusters))
+    
+    for cluster_id in cluster_ids:
+        
+        cluster = clusters[cluster_id]
+        
+        #print(cluster.shape)
         shape = (nr_windows*nr_electrodes, 1)
         
+        #relate to time and channel
         cluster_df = pd.DataFrame(data = cluster,
                                   index = windows,
                                   columns = electrodes)
@@ -81,28 +82,42 @@ def cluster_permutations(data):
 
         #print(cluster_df) #matrix
         
-        cluster_name = 'cluster' + str(i)
+        #select data_points in cluster
+        cluster_name = 'cluster_' + str(cluster_id+1)
         cluster_df = cluster_df.melt(ignore_index = False,
                                      var_name = 'channel',
                                      value_name = cluster_name)
-        i = i+1
-    
+        
+        cluster_df = cluster_df.reset_index()
+        
         cluster_df = cluster_df[cluster_df[cluster_name] == True]
         
-        print(cluster_df)
+        cluster_df = cluster_df[['time', 'channel']]
         
-        #add as column to results
-        results = pd.merge(results, cluster_df, how = 'outer', #union
-                       left_on = ['time', 'channel'],
-                       right_on = ['time', 'channel'])
+        #print(cluster_df)
         
-    print(results)
+        data_points = cluster_df.values.tolist()
         
-    return results
+        #print(cluster_name, data_points)
         
+        #significance
+        
+        p_val = p_val_clusters[cluster_id]
+        
+        crit_p_val = c.SIGNIFICANCE
+        
+        significant =  p_val < crit_p_val
+        
+        results.append([cluster_name, data_points, p_val, crit_p_val, significant])
+        
+        cluster_id += 1
     
-    #return sig. cluster data points (times and electrodes)
-    #dataframe format?
+    results_df = pd.DataFrame(results, 
+                              columns =['cluster', 'data_points', 
+                                        'p_val', 'crit_p_val', 'significant'])
+    
+    return results_df
+    
     
 
 def test_condition(window_size, density, local, cond):
@@ -132,5 +147,7 @@ def test():
                 for cond in c.TEST_CONDITIONS:
                     test_condition(w,d,l,cond)  
 
-#test_condition(0.004, 86, False, 'difference')
+# fm.set_up((80,40), (0.2,-0.2,0.04), True) 
+# c.set_up((80,40), (0.2,-0.2,0.04), True)
+# test_condition(0.004, 86, False, 'vs_left')
     

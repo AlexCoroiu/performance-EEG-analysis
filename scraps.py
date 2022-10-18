@@ -296,3 +296,186 @@ reject ('null hypothesis'):
 #     electrodes = len(list(set(electrodes) & set(c.CHANNELS_VISUAL)))
 
 # total = time * electrodes
+
+
+"""
+
+CLUSTER PERMUTATION OLD FORMAT (time x channel and all clusters)
+    
+    #select significant clusters
+    sig_clusters_ids = np.where(p_val_clusters < c.SIGNIFICANCE)[0]
+    sig_clusters = [clusters[i] for i in sig_clusters_ids]
+    
+    print(sig_clusters)
+    
+    results = pd.DataFrame(columns = ['time', 'channel'])
+    print(results) #empty df
+
+    i = 1
+
+    for cluster in sig_clusters:
+        print(cluster.shape)
+        shape = (nr_windows*nr_electrodes, 1)
+        
+        cluster_df = pd.DataFrame(data = cluster,
+                                  index = windows,
+                                  columns = electrodes)
+        
+        cluster_df.index.names = ['time']
+
+        #print(cluster_df) #matrix
+        
+        cluster_name = 'cluster' + str(i)
+        cluster_df = cluster_df.melt(ignore_index = False,
+                                     var_name = 'channel',
+                                     value_name = cluster_name)
+        i = i+1
+    
+        cluster_df = cluster_df[cluster_df[cluster_name] == True]
+        
+        print(cluster_df)
+        
+        #add as column to results
+        results = pd.merge(results, cluster_df, how = 'outer', #union
+                       left_on = ['time', 'channel'],
+                       right_on = ['time', 'channel'])
+        
+    print(results)
+        
+    return results
+        
+    
+    #return sig. cluster data points (times and electrodes)
+    #dataframe format?
+    
+"""
+
+"""
+
+CLUSTER PERMUTATION OLD FORMAT RESULTS
+
+sig = load_analysed(window_size,density,local,cond,'cp')
+
+#sig cluster count
+clusters = list(set(sig.columns.tolist()) - set(['time', 'channel']))
+sig_count = len(clusters)
+
+#TP
+tp_clusters = []
+for clust in clusters:
+    cluster_df = sig[['time','channel',clust]]
+    
+    #retain only cluster vars
+    cluster_df = cluster_df[cluster_df[clust] == True]
+    
+    #add only columns which contain true positives for vals in signal criteria
+    cluster_df = cluster_df[(cluster_df['time'] <= c.SIG_INTERVAL_MAX) &
+                            (cluster_df['time'] >= c.SIG_INTERVAL_MIN)]
+    cluster_df = cluster_df[cluster_df['channel'].isin(c.CHANNELS_VISUAL)]
+    
+    #if there is any sig data point in the cluster, consider it a true positive
+    if cluster_df.shape[0] > 0:
+        tp_clusters.append(clust)
+    
+tp_count = len(tp_clusters)
+
+#FP
+fp_count = sig_count - tp_count
+
+#TN
+
+#FN
+
+#precision
+if sig_count != 0:
+    precision = tp_count/sig_count
+else:
+    precision = 0
+
+#vars that don't exist for this method
+total = None
+crit_p_val = None
+
+
+#save
+return [window_size, density, local, 
+        cond, 'cp', 
+        crit_p_val, total, 
+        sig_count, tp_count, fp_count, precision] 
+
+"""
+
+"""
+CLUSTER PERMUTATION OLD FORMAT FINAL RESULTS
+#TP
+tp_clusters = []
+for clust in clusters:
+    cluster_df = sig[['time','channel',clust]]
+    
+    #retain only cluster vars
+    cluster_df = cluster_df[cluster_df[clust] == True]
+    
+    #add only columns which contain true positives for vals in signal criteria
+    cluster_df = cluster_df[(cluster_df['time'] <= c.SIG_INTERVAL_MAX) &
+                            (cluster_df['time'] >= c.SIG_INTERVAL_MIN)]
+    cluster_df = cluster_df[cluster_df['channel'].isin(c.CHANNELS_VISUAL)]
+    
+    #if there is any sig data point in the cluster, consider it a true positive
+    if cluster_df.shape[0] > 0:
+        tp_clusters.append(clust)
+        
+"""
+
+"""
+
+CONFUSION MATRXI WITHOUR SKLEARN
+def extract_actual_mc(predicted):
+    predicted_count = len(predicted)
+    
+    #actual positives found in predicted values
+    #expected time interval
+    positives = predicted[(predicted['time'] <= c.SIG_INTERVAL_MAX) &
+                          (predicted['time'] >= c.SIG_INTERVAL_MIN)] #must use bit wise boolean logic operators
+    
+    #expected electrode location
+    positives = positives[positives['channel'].isin(c.CHANNELS_VISUAL)]
+    
+    positives_count = len(positives)
+    
+    #actual negatives found in predicted values
+    negatives_count = predicted_count - positives_count 
+    
+    return (predicted_count, positives_count, negatives_count)
+
+def extract_actual_cp(predicted):
+    predicted_count = len(predicted)
+    
+    #actual positives
+    positives = predicted[any(((datapoint[0] <= c.SIG_INTERVAL_MAX & 
+                               datapoint[0] >= c.SIG_INTERVAL_MIN) & 
+                              datapoint[1].isin(c.CHANNELS_VISUAL))
+                              for datapoint in predicted['data_points'])] 
+    
+    positives_count = len(positives)
+    
+    #actual negatives found in predicted values
+    negatives_count = predicted_count - positives_count                      
+    
+    return (predicted_count, positives_count, negatives_count)
+"""
+
+
+"""
+#CONFUSION MATRIX
+#sig cluster count
+predicted_positive = analysed[analysed['significant'] == True]
+P_count, TP_count, FP_count = extract_actual_cp(predicted_positive)
+
+#non significant test results
+predicted_negative = analysed[analysed['significant'] == False]   
+N_count, FN_count, TN_count = extract_actual_cp(predicted_negative)
+
+#METRICS
+precision = calcualte_metrics(P_count, TP_count, FP_count, 
+                              N_count, TN_count, FN_count)
+"""

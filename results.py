@@ -9,7 +9,9 @@ Created on Fri Jun 24 18:19:05 2022
 import file_manager as fm
 import constants as c
 import pandas as pd
-import math
+import numpy as np
+import sklearn.metrics
+from ast import literal_eval
 
 def load_analysed(window_size, density, local, cond, method):
     window_ms = int(window_size*1000)
@@ -21,23 +23,43 @@ def load_analysed(window_size, density, local, cond, method):
               
     return analysed
 
-def extract_actual(predicted):
-    predicted_count = len(predicted)
-    
+def true_signal_mc(data):
     #actual positives found in predicted values
-    #expected time interval
-    positives = predicted[(predicted['time'] <= c.SIG_INTERVAL_MAX) &
-                          (predicted['time'] >= c.SIG_INTERVAL_MIN)] #must use bit wise boolean logic operators
+    #expected time interval & visual electrodes
+
+    expected = np.where((data['time'] <= c.SIG_INTERVAL_MAX) &
+                        (data['time'] >= c.SIG_INTERVAL_MIN) &
+                        data['channel'].isin(c.CHANNELS_VISUAL),
+                        True, False) #must use bit wise boolean logic operators
+
+    return expected
+
+def true_signal_cp(data):
+
+    expected = [any(((datapoint[0] <= c.SIG_INTERVAL_MAX) and #time
+                     (datapoint[0] >= c.SIG_INTERVAL_MIN) and #time
+                     datapoint[1] in c.CHANNELS_VISUAL) #channel
+                    for datapoint in data_points) 
+                for data_points in data['data_points']]
     
-    #expected electrode location
-    positives = positives[positives['channel'].isin(c.CHANNELS_VISUAL)]
+    return expected
+
+
+def get_metrics(expected, found):
+    #confusion matrix
+    confusion_matrix = sklearn.metrics.confusion_matrix(expected,
+                                                        found, 
+                                                        labels = [False, True])
     
-    positives_count = len(positives)
+    (TN_count, FP_count, FN_count, TP_count) = confusion_matrix.ravel()
     
-    #actual negatives found in predicted values
-    negatives_count = predicted_count - positives_count 
+    #metrics
+    precision = sklearn.metrics.precision_score(expected,found, zero_division = 0)
     
-    return (predicted_count, positives_count, negatives_count)
+    return (TN_count, FP_count, 
+            FN_count, TP_count, 
+            precision)
+    
 
 #do calcualtions and add to data
 def summary_results_mc(window_size,density,local,cond,method):
@@ -50,80 +72,51 @@ def summary_results_mc(window_size,density,local,cond,method):
     #crit_p
     crit_p_val = analysed['crit_p_val'].values[0]
     
-    #CONFUSION MATRIX
-    #significant test results
-    predicted_positive = analysed[analysed['significant'] == True] 
-    P_count, TP_count, FP_count = extract_actual(predicted_positive)
+    #CONFUSION MATRIX & METRICS
+    analysed['expected'] = true_signal_mc(analysed)
     
-    #non significant test results
-    predicted_negative = analysed[analysed['significant'] == False]   
-    N_count, FN_count, TN_count = extract_actual(predicted_negative) 
+    (TN_count, FP_count, 
+     FN_count, TP_count, 
+     precision) = get_metrics(analysed['expected'],
+                 analysed['significant'])
     
-    #METRICS 
-    
-    #precision
-    if P_count != 0:
-        precision = TP_count/P_count
-    else:
-        precision = 0
-        
-    #TODO other metrics
-    
-    return [window_size, density, local, cond, method, 
+    return [window_size, density, local, 
+            cond, method, 
             crit_p_val, total, 
-            P_count, TP_count, FP_count, 
-            N_count, TN_count, FN_count,
+            TP_count, FP_count, 
+            TN_count, FN_count,
             precision] 
 
 
-#TODO total clusters, TN, FN
 def summary_results_cp(window_size,density,local,cond):
     
-    sig = load_analysed(window_size,density,local,cond,'cp')
+    analysed = load_analysed(window_size,density,local,cond,'cp')
     
-    #sig cluster count
-    clusters = list(set(sig.columns.tolist()) - set(['time', 'channel']))
-    sig_count = len(clusters)
+    #covnert data_points to list type
+    analysed['data_points'] = analysed['data_points'].apply(literal_eval)
     
-    #TP
-    tp_clusters = []
-    for clust in clusters:
-        cluster_df = sig[['time','channel',clust]]
-        
-        #retain only cluster vars
-        cluster_df = cluster_df[cluster_df[clust] == True]
-        
-        #add only columns which contain true positives for vals in signal criteria
-        cluster_df = cluster_df[(cluster_df['time'] <= c.SIG_INTERVAL_MAX) &
-                                (cluster_df['time'] >= c.SIG_INTERVAL_MIN)]
-        cluster_df = cluster_df[cluster_df['channel'].isin(c.CHANNELS_VISUAL)]
-        
-        #if there is any sig data point in the cluster, consider it a true positive
-        if cluster_df.shape[0] > 0:
-            tp_clusters.append(clust)
-        
-    tp_count = len(tp_clusters)
+    #total clusters
+    total = len(analysed)
     
-    #FP
-    fp_count = sig_count - tp_count
+    #crit_p
+    crit_p_val = analysed['crit_p_val'].values[0] # == c.SIGNIFICANCE always
     
-    #TN
+    #CONFUSION MATRIX
+    analysed['expected'] = true_signal_cp(analysed)
     
-    #FN
+    (TN_count, FP_count, 
+     FN_count, TP_count, 
+     precision) = get_metrics(analysed['expected'],
+                 analysed['significant'])
     
-    #precision
-    if sig_count != 0:
-        precision = tp_count/sig_count
-    else:
-        precision = 0
-    
-    total = None
-    crit_p_val = None
-    return [window_size, density, local, cond, 'cp', 
+    #save
+    return [window_size, density, local, 
+            cond, 'cp', 
             crit_p_val, total, 
-            sig_count, tp_count, fp_count, precision] 
+            TP_count, FP_count, 
+            TN_count, FN_count,
+            precision] 
     
-
 #multiple comaprisons results for all method params
 def results_mc(method):
     dataset = fm.DATA_DIR
@@ -141,8 +134,8 @@ def results_mc(method):
                               columns =['window_size', 'density', 'location', 
                                         'condition', 'method', 
                                         'crit_p_val', 'total', 
-                                        'total_P','TP', 'FP', 
-                                        'total_N', 'TN', 'FN',
+                                        'TP', 'FP', 
+                                        'TN', 'FN',
                                         'precision'])
 
     
@@ -173,8 +166,10 @@ def results_cp(): #redundant code but oh well
                     
     results_df = pd.DataFrame(results, 
                               columns =['window_size', 'density', 'location', 
-                                        'condition', 'method', 'total', 
-                                        'total_P','TP', 'FP', 
+                                        'condition', 'method', 
+                                        'crit_p_val','total', 
+                                        'TP', 'FP',
+                                        'TN', 'FN',
                                         'precision'])
 
     
@@ -184,9 +179,5 @@ def results_cp(): #redundant code but oh well
     return results_df 
     
 #print(summary_results(0.02,86, True, 'baseline', 'w'))
-
-
-
-
-
     
+#TODO scikit metrics or own functions?

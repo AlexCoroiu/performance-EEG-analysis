@@ -24,15 +24,15 @@ def run_data():
     preparation.prepare()
      
 def run_methods():
-    multiple_comparisons.test_window()
-    multiple_comparisons.test_bonferroni()
-    #cluster_permutations.test()
+    #multiple_comparisons.test_window()
+    #multiple_comparisons.test_bonferroni()
+    cluster_permutations.test()
     
 def run_results():
     res_dfs = []
     res_dfs.append(results.results_mc_window())
     res_dfs.append(results.results_mc_bonferroni())
-    #res_dfs.append(results.results_cp())
+    res_dfs.append(results.results_cp())
     
     #concat all results
     res = pd.concat(res_dfs, axis=0)
@@ -60,11 +60,11 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
 #RUN ALL DATASETS
     
 #TODO see where to declare these variables ranges (here or in the constants file)
-#I think betetr here, to see celarly the role and workings of the setup functions
+#I think better here, to see celarly the role and workings of the setup functions
 amplitudes = [(40,20), (60,30), (60, 20), (80,40), (80,30), (80,20)] #mV (contra, ipsi)
 noise_filters = [(0.1,-0.1,0.02),(0.2,-0.2,0.04)] #infinite impulse response filter
 band_pass_filtering = [True,False]
-    
+
 def run():
     final_results = []
     for amp in amplitudes:
@@ -83,9 +83,10 @@ def run():
     
     columns = ['amplitude', 'noise_filter', 'band_pass',
                 'window_size', 'density', 'location', 
-                'condition', 'method', 'total', 
-                'total_P', 'TP', 'FP', 
-                'total_N', 'TN', 'FN',
+                'condition', 'method', 
+                'crit_p_val', 'total',
+                'TP', 'FP', 
+                'TN', 'FN',
                 'precision']
 
     results_df = results_df[columns]
