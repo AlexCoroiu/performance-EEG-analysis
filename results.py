@@ -36,6 +36,7 @@ def true_signal_mc(data):
 
 def true_signal_cp(data):
 
+    #cluster contains at least one point in expected signal
     expected = [any(((datapoint[0] <= c.SIG_INTERVAL_MAX) and #time
                      (datapoint[0] >= c.SIG_INTERVAL_MIN) and #time
                      datapoint[1] in c.CHANNELS_VISUAL) #channel
@@ -44,7 +45,6 @@ def true_signal_cp(data):
     
     return expected
 
-
 def get_metrics(expected, found):
     #confusion matrix
     confusion_matrix = sklearn.metrics.confusion_matrix(expected,
@@ -52,18 +52,23 @@ def get_metrics(expected, found):
                                                         labels = [False, True])
     
     (TN, FP, FN, TP) = confusion_matrix.ravel()
+      
+    #edge cases precision
+    if FP == 0 and TP == 0:
+        precision = 1
+    else:
+        precision = TP/(TP+FP)
+        
+    #edge case recall
+    if FN == 0 and TP == 0:
+        recall = 1
+    else:
+        recall = TP/(TP+FN)
     
-    
-    #metrics
-    def div(n,d):
-        return n/d if d else 0
-    
-    precision = div(TP,TP+FP)  #type I error FN
-    recall = div(TP,TP+FN) #type II error FN
-    f1 = 2*div(precision*recall, precision + recall)
+    f1 = 2*precision*recall/(precision + recall)
     
     return (TN, FP, FN, TP, precision, recall, f1)
-    
+        
 
 #do calcualtions and add to data
 def summary_results_mc(window_size,density,local,cond,method):
@@ -82,10 +87,13 @@ def summary_results_mc(window_size,density,local,cond,method):
     (TN_count, FP_count, FN_count, TP_count, 
      precision, recall, F1) = get_metrics(analysed['expected'],
                  analysed['significant'])
+                                          
+    positives = TP_count + FP_count
+    global_significant =  (positives > (total*c.SIGNIFICANCE)) #!!!                         
     
     return [window_size, density, local, 
             cond, method, 
-            crit_p_val, total, 
+            crit_p_val, total, positives, global_significant,
             TP_count, FP_count, TN_count, FN_count,
             precision, recall, F1] 
 
@@ -103,17 +111,20 @@ def summary_results_cp(window_size,density,local,cond):
     #crit_p
     crit_p_val = analysed['crit_p_val'].values[0] # == c.SIGNIFICANCE always
     
-    #CONFUSION MATRIX
+    #CONFUSION MATRIX LOCAL
     analysed['expected'] = true_signal_cp(analysed)
     
     (TN_count, FP_count, FN_count, TP_count, 
      precision, recall, F1) = get_metrics(analysed['expected'],
                                           analysed['significant'])
     
+    positives = TP_count + FP_count
+    global_significant = (positives > 0) #!!!
+                                          
     #save
     return [window_size, density, local, 
-            cond, 'cp', 
-            crit_p_val, total, 
+            cond, 'cp',
+            crit_p_val, total,  positives, global_significant,
             TP_count, FP_count, TN_count, FN_count,
             precision, recall, F1] 
     
@@ -134,10 +145,10 @@ def results_mc(method):
                               columns =['window_size', 'density', 'location', 
                                         'condition', 'method', 
                                         'crit_p_val', 'total', 
+                                        'positives', 'global_significant',
                                         'TP', 'FP', 'TN', 'FN',
                                         'precision', 'recall', 'F1'])
 
-    
     dataframe_file = dataset + '\\results_' + method + '.csv'
     results_df.to_csv(dataframe_file, index = False)
     
@@ -166,10 +177,10 @@ def results_cp(): #redundant code but oh well
     results_df = pd.DataFrame(results, 
                               columns =['window_size', 'density', 'location', 
                                         'condition', 'method', 
-                                        'crit_p_val','total', 
+                                        'crit_p_val','total',
+                                        'positives', 'global_significant',
                                         'TP', 'FP', 'TN', 'FN',
                                         'precision', 'recall', 'F1'])
-
     
     dataframe_file = dataset + '\\results_cp.csv'
     results_df.to_csv(dataframe_file, index = False)
@@ -178,4 +189,3 @@ def results_cp(): #redundant code but oh well
     
 #print(summary_results(0.02,86, True, 'baseline', 'w'))
     
-#TODO scikit metrics or own functions?

@@ -58,8 +58,8 @@ def prepare():
     df = pross.load_evo_df()
         
     #select post stimulus time interval 0 to 500
-    df = df[df['time'] >= c.TEST_INTERVAL_MIN & 
-            df['time'] <= c.TEST_INTERVAL_MAX]
+    df = df[(df['time'] >= c.TEST_INTERVAL_MIN) & 
+            (df['time'] <= c.TEST_INTERVAL_MAX)]
     
     #format wide
     df = df.pivot(index=['part','time','channel'], 

@@ -9,9 +9,10 @@ import pandas as pd
 import os
 import sklearn.metrics
 import seaborn as sb
+import numpy as np
+from results import get_metrics
 
 #load final results
-
 def load_final_results():
     dataframe_file = 'final_results.csv'
     data = pd.read_csv(dataframe_file)
@@ -21,38 +22,51 @@ def load_final_results():
 def group_stats(data, i_var, d_var):
     grouped = data.groupby(i_var)
     print(grouped[d_var].describe())
-
-#print(load_final_results())
+    
 
 data = load_final_results()
 
+data['expected'] = np.where(data['condition'] == 'baseline', False, True)
+
+#(TN, FP, FN, TP, precision, recall, F1)
+results = get_metrics(data['expected'], 
+                      data['global_significant'])
+
+print(results)
+
 #SUMAMRY STATISTICS
+
+#general per method 
 group_stats(data, 'method', 'F1')
+group_stats(data, 'method', 'global_significan')
+
+# ==> cluster permutation precision is better but the result is less exact (?)
 
 #EXPLORATION VARIABLES
 
 #filter for window method
 data_w = data[data['method'] == 'w']
 
-#amplitude
-group_stats(data_w, 'amplitude', 'F1')
-#noise filter
-group_stats(data_w, 'noise_filter', 'F1')
-#window size
-group_stats(data_w, 'window_size', 'F1')
-#density
-group_stats(data_w, 'density', 'F1')
-#location
-group_stats(data_w, 'location', 'F1')
-#bandpass
-group_stats(data_w, 'band_pass', 'F1')
 #condition
-group_stats(data_w, 'condition', 'F1')
+group_stats(data_w, 'condition', 'global_significant')
 
-#much betetr at detecting signal then at detecting baseline or difference
+
+group_stats(data_w, 'condition', 'F1')
+# ==> much betetr at detecting signal then at detecting baseline or difference
+
+i_vars = ['amplitude', 'noise_filter', 'band_pass',
+          'window_size', 'density', 'location' ]
+
+d_vars = ['F1', 'FP' , "FN"]
+
+for d in d_vars:
+    print("\n", d, "\n")
+    for i in i_vars:
+        group_stats(data_w, i, d)
+
 #TODO per condition
-#TODO type I, type II error 
-#(probs a lot of false positives in baselien and a lot of false negatives in diff)
+#(probs a lot of false positives in baseline 
+#and a lot of false negatives in diff)
 
 #data_w.plot.scatter(x='crit_p_val', y = 'F1')
 

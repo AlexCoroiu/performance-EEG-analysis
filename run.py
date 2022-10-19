@@ -25,14 +25,14 @@ def run_data():
      
 def run_methods():
     multiple_comparisons.test_window()
-    multiple_comparisons.test_bonferroni()
-    cluster_permutations.test()
+    #multiple_comparisons.test_bonferroni()
+    #cluster_permutations.test()
     
 def run_results():
     res_dfs = []
     res_dfs.append(results.results_mc_window())
-    res_dfs.append(results.results_mc_bonferroni())
-    res_dfs.append(results.results_cp())
+    #res_dfs.append(results.results_mc_bonferroni())
+    #res_dfs.append(results.results_cp())
     
     #concat all results
     res = pd.concat(res_dfs, axis=0)
@@ -85,6 +85,7 @@ def run():
                 'window_size', 'density', 'location', 
                 'condition', 'method', 
                 'crit_p_val', 'total',
+                'positives', 'global_significant',
                 'TP', 'FP', 'TN', 'FN',
                 'precision', 'recall', 'F1']
 
