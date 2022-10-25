@@ -133,14 +133,14 @@ def test_condition(window_size, density, local, cond, correction):
         b_results = bonferroni(results)  
         b_results['significant'] = b_results['bonferroni_reject'] #null hypothesis was rejected
         #save
-        dataframe_file = dataset + '\\' + cond + '_b.csv'
+        dataframe_file = dataset + '\\' + cond + 'mc_b.csv'
         b_results.to_csv(dataframe_file, index = False)
 
     elif correction == 'window':
         w_results = window(results)
         w_results['significant'] = w_results['window_reject'] #null hypothesis was rejected
         #save
-        dataframe_file = dataset + '\\' + cond + '_w.csv'
+        dataframe_file = dataset + '\\' + cond + 'mc_w.csv'
         w_results.to_csv(dataframe_file, index = False)
                 
 def test(correction):

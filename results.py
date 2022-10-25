@@ -54,20 +54,33 @@ def get_metrics(expected, found):
     (TN, FP, FN, TP) = confusion_matrix.ravel()
       
     #edge cases precision
-    if FP == 0 and TP == 0:
+    if FP == 0 and TP == 0: #no cases predicted postive
         precision = 1
     else:
         precision = TP/(TP+FP)
         
     #edge case recall
-    if FN == 0 and TP == 0:
+    #hit rate (doesn't make sense when there are is no positive data)
+    if FN == 0 and TP == 0: #no positives in the input data
         recall = 1
     else:
         recall = TP/(TP+FN)
     
     f1 = 2*precision*recall/(precision + recall)
     
-    return (TN, FP, FN, TP, precision, recall, f1)
+    #edge case type I error rate
+    if FP == 0 and TN == 0: # no negatives in input data
+        type_I_ER = 0
+    else:
+        type_I_ER = FP/(FP+TN) #statistical significance (false positive rate)
+    
+    #edge case type II error
+    if FN == 0 and TP == 0: #no positives in input data
+        type_II_ER = 0
+    else:
+        type_II_ER = FN/(FN+TP) #statistical power (false negative rate)
+    
+    return (TN, FP, FN, TP, precision, recall, f1, type_I_ER, type_II_ER)
         
 
 #do calcualtions and add to data
@@ -85,8 +98,9 @@ def summary_results_mc(window_size,density,local,cond,method):
     analysed['expected'] = true_signal_mc(analysed)
     
     (TN_count, FP_count, FN_count, TP_count, 
-     precision, recall, F1) = get_metrics(analysed['expected'],
-                 analysed['significant'])
+     precision, recall, F1,
+     type_I_error, type_II_error) = get_metrics(analysed['expected'],
+                                                analysed['significant'])
                                           
     positives = TP_count + FP_count
     global_significant =  (positives > (total*c.SIGNIFICANCE)) #!!!                         
@@ -95,7 +109,7 @@ def summary_results_mc(window_size,density,local,cond,method):
             cond, method, 
             crit_p_val, total, positives, global_significant,
             TP_count, FP_count, TN_count, FN_count,
-            precision, recall, F1] 
+            precision, recall, F1, type_I_error, type_II_error] 
 
 
 def summary_results_cp(window_size,density,local,cond):
@@ -115,7 +129,8 @@ def summary_results_cp(window_size,density,local,cond):
     analysed['expected'] = true_signal_cp(analysed)
     
     (TN_count, FP_count, FN_count, TP_count, 
-     precision, recall, F1) = get_metrics(analysed['expected'],
+     precision, recall, F1,
+     type_I_error, type_II_error) = get_metrics(analysed['expected'],
                                           analysed['significant'])
     
     positives = TP_count + FP_count
@@ -126,7 +141,7 @@ def summary_results_cp(window_size,density,local,cond):
             cond, 'cp',
             crit_p_val, total,  positives, global_significant,
             TP_count, FP_count, TN_count, FN_count,
-            precision, recall, F1] 
+            precision, recall, F1, type_I_error, type_II_error ] 
     
 #multiple comaprisons results for all method params
 def results_mc(method):
@@ -147,7 +162,8 @@ def results_mc(method):
                                         'crit_p_val', 'total', 
                                         'positives', 'global_significant',
                                         'TP', 'FP', 'TN', 'FN',
-                                        'precision', 'recall', 'F1'])
+                                        'precision', 'recall', 'F1',
+                                        'type_I_ER', 'type_II_ER'])
 
     dataframe_file = dataset + '\\results_' + method + '.csv'
     results_df.to_csv(dataframe_file, index = False)
@@ -155,10 +171,10 @@ def results_mc(method):
     return results_df 
     
 def results_mc_window():
-    return results_mc('w')
+    return results_mc('mc_w')
     
 def results_mc_bonferroni():
-    return results_mc('b')
+    return results_mc('mc_b')
 
     
 #cluster permutations resutls
@@ -180,7 +196,8 @@ def results_cp(): #redundant code but oh well
                                         'crit_p_val','total',
                                         'positives', 'global_significant',
                                         'TP', 'FP', 'TN', 'FN',
-                                        'precision', 'recall', 'F1'])
+                                        'precision', 'recall', 'F1',
+                                        'type_I_ER', 'type_II_ER'])
     
     dataframe_file = dataset + '\\results_cp.csv'
     results_df.to_csv(dataframe_file, index = False)

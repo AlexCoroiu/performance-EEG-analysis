@@ -159,4 +159,6 @@ def set_up(amplitude, noise_filter, band_pass_filtering):
     # analysis
     dirs['ANALYSED_DIR'] = DATA_DIR + '\\' + "analysed"
     
-    # results
+
+
+

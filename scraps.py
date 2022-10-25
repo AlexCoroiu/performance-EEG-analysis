@@ -135,8 +135,8 @@ NOISE
 #high pass filter for 0.1 Hz frequencies
 NOISE_FILTER = (0.1,-0.1,0.02)
 #the bigger the iir filter values, the less noise (signal-noise ratio)
-#(0.1,-0.1,0.02)
-#(0.2,-0.2,0.04)
+#(0.1,-0.1,0.02) ==> high noise
+#(0.2,-0.2,0.04) ==> low noise
 
 # #noise levels variables
 # #+/-0.1 ??? the lower the value, the more amp
@@ -497,4 +497,48 @@ print(confusion_matrix.ravel())
 #TN, FP
 #FN, TP
 
+"""
+
+"""
+
+RENAMING FILES
+import file_manager as fm
+import constants as c
+import pandas as pd
+import os
+
+def rename_analysed(window_size, density, local, cond, method):
+    window_ms = int(window_size*1000)
+    dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
+    dataset = fm.ANALYSED_DIR + '\\' + dir_name
+    
+    dataframe_file_old = dataset + '\\' + cond + '_' + method + '.csv'
+    dataframe_file_new = dataset + '\\' + cond + '_mc_' + method + '.csv'
+    os.rename(dataframe_file_old, dataframe_file_new)
+    
+    
+
+amplitudes = [(40,20), (60,30), (60, 20), (80,40), (80,30), (80,20)] #mV (contra, ipsi)
+noise_filters = [(0.1,-0.1,0.02),(0.2,-0.2,0.04)] #infinite impulse response filter
+band_pass_filtering = [True,False]
+
+
+for amp in amplitudes:
+    for nf in noise_filters:
+        for bpf in band_pass_filtering: 
+            #SETUP
+            #file structure
+            fm.set_up(amp, nf, bpf)
+            
+            #constants  
+            c.set_up(amp, nf, bpf)
+            
+            for w in c.WINDOW_SIZE:
+                for d in c.DENSITY.keys():
+                    for l in c.LOCAL:
+                        for cond in c.TEST_CONDITIONS:
+                            rename_analysed(w, d, l, cond, 'w')
+                            rename_analysed(w, d, l, cond, 'b')
+                            
+                            
 """

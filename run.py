@@ -32,7 +32,7 @@ def run_results():
     res_dfs = []
     res_dfs.append(results.results_mc_window())
     res_dfs.append(results.results_mc_bonferroni())
-    #res_dfs.append(results.results_cp())
+    res_dfs.append(results.results_cp())
     
     #concat all results
     res = pd.concat(res_dfs, axis=0)
@@ -72,22 +72,24 @@ def run():
             for bpf in band_pass_filtering:
                 res = run_dataset(amp, nf, bpf)
                 
-                res['amplitude'] = str(amp[0]) + str(amp[1]) 
-                res['noise_filter'] = str(nf[0]) 
-                res['band_pass'] = str(bpf)
+                #TODO how to save amp?
+                res['amplitude'] = str(amp)
+                res['noise'] = "high" if (nf[0] == 0.1) else "low" 
+                res['band_pass'] = bpf #str(bpf)
                 
                 final_results.append(res) 
                 
     #save cummulated results to df
     results_df = pd.concat(final_results, axis=0)
     
-    columns = ['amplitude', 'noise_filter', 'band_pass',
+    columns = ['amplitude', 'noise', 'band_pass',
                 'window_size', 'density', 'location', 
                 'condition', 'method', 
                 'crit_p_val', 'total',
                 'positives', 'global_significant',
                 'TP', 'FP', 'TN', 'FN',
-                'precision', 'recall', 'F1']
+                'precision', 'recall', 'F1',
+                'type_I_ER', 'type_II_ER']
 
     results_df = results_df[columns]
 

@@ -3,3 +3,4 @@ __pycache__/
 fs-avg-fwd.fif
 ss-src.fif
 data_*/
+statistics/
