@@ -12,6 +12,7 @@ import seaborn as sb
 import numpy as np
 from results import get_metrics
 from file_manager import do_dir
+import matplotlib.pyplot as plt
 
 #HELPING FUNCTIONS
 def load_final_results():
@@ -44,18 +45,20 @@ def split_data(data, var):
 #load final results
 data = load_final_results()
 
-#TODO statsitics for crit_p_val?
-
 #variables
-i_vars = ['amplitude', 'noise', 'band_pass',
-          'window_size', 'density', 'location']
+sim_vars = ['amplitude', 'noise', 'band_pass']
 
-d_vars = ['TN', 'FP','FN', 'TP', 
-          'precision', 'recall', 'F1',
-          'type_I_ER', 'type_II_ER']
+meas_vars = ['window_size', 'density', 'location']
+
+i_vars = sim_vars + meas_vars
+
+methods = ['mc_w', 'mc_b', 'cp'] #or get from unique
+conditions = ['baseline', 'vs_right', 'vs_left', 'difference']
+
+d_vars = ['F1','type_I_ER','type_II_ER'] #TODO ad expected at local level
 
 # expected global results
-data['expected'] = np.where(data['condition'] == 'baseline', False, True)
+data['expected'] = np.where(data['condition'] == 'baseline', False, True) #TODO addd expected at global level
 
 #splitting data
 methods_data = split_data(data, 'method')
@@ -111,7 +114,6 @@ def compare_methods_conds():
     dataframe_file = stats_dir + '\\compare_methods_conds.csv'
     methods_metrics_df.to_csv(dataframe_file, index = False)
 
-# ==> cluster permutation precision is better but the result is less exact (?)
 
 def compare_method_vars(m, var, stats_dir):
     m_name = m['method'].iloc[0]
@@ -288,6 +290,102 @@ def compare_vars_conds_local():
             dataframe_file = stats_m_dir + '\\' + var + '_conds_local.csv'
             stats_df.to_csv(dataframe_file)
         
+#p_val
+
+# def p_val_local(method):
+#     data_m = data[data['method'] == method]
+#     stats_plots_dir = stats_dir + '\\' + method + '\\plots'
+#     do_dir(stats_plots_dir)
+    
+#     #plot scatter
+#     for d in d_vars:
+#         s_plot = sb.lmplot(data=data_m, 
+#                     x='crit_p_val', y=d, 
+#                     scatter = True,
+#                     fit_reg=True,
+#                     facet_kws=dict(sharex=False, sharey=False))
+#         file = stats_plots_dir + '\\' + d + '_scatter.png'
+#         s_plot.savefig(file)
+    
+#     #plot violin
+#     for d in d_vars:
+#         v_plot = sb.violinplot(data=data_m, 
+#                     x='crit_p_val', y=d, 
+#                     facet_kws=dict(sharex=False, sharey=False))
+#         file = stats_plots_dir + '\\' + d + '_violin.png'
+#         v_plot.get_figure().savefig(file)
+    
+def p_val_conds_local(method):
+    data_m = data[data['method'] == method]
+    stats_plots_dir = stats_dir + '\\' + method + '\\plots'
+    do_dir(stats_plots_dir)
+    
+    #plot scatter #TODO is it  really linear, can we talk about lienarity?
+    for d in d_vars:
+        plot = sb.lmplot(data=data_m, 
+                    x='crit_p_val', y=d, 
+                    col = 'condition',
+                    scatter = True,
+                    fit_reg=True,
+                    facet_kws=dict(sharex=False, sharey=False))
+        file = stats_plots_dir + '\\cond_' + d + '_scatter.png'
+        plot.savefig(file)
+        plot.fig.clf()
+        
+    #plot violin
+    for d in d_vars:
+        for cond in conditions:
+            data_c = data_m[data_m['condition'] == cond]
+            plot = sb.violinplot(data=data_c, 
+                        x='crit_p_val', y=d)
+            file = stats_plots_dir + '\\' + d + '_' + cond + '_violin.png'
+            plot.get_figure().savefig(file)
+            plot.get_figure().clf()
+            
+    #plot histogram
+    for d in d_vars:
+        for cond in conditions:
+            data_c = data_m[data_m['condition'] == cond]
+            plot = sb.histplot(data=data_c, 
+                        x='crit_p_val', y=d)
+            file = stats_plots_dir + '\\' + d + '_' + cond + '_hist.png'
+            plot.get_figure().savefig(file)
+            plot.get_figure().clf()
+            
+    #plot boxplot
+    for d in d_vars:
+        for cond in conditions:
+            data_c = data_m[data_m['condition'] == cond]
+            plot = sb.boxplot(data=data_c, 
+                        x='crit_p_val', y=d)
+            file = stats_plots_dir + '\\' + d + '_' + cond + '_box.png'
+            plot.get_figure().savefig(file)
+            plot.get_figure().clf()
+    
+
+    
+def p_val_conds_vars_local(method, independent_vars):
+    data_m = data[data['method'] == method]
+    stats_plots_dir = stats_dir + '\\' + method + '\\plots'
+    do_dir(stats_plots_dir)
+    
+    #plot
+    for v in i_vars:
+        for d in d_vars:
+            plot = sb.lmplot(data=data_m, 
+                        x='crit_p_val', y=d, 
+                        col = 'condition',
+                        scatter = True,
+                        fit_reg=True,
+                        facet_kws=dict(sharex=False, sharey=False))
+            file = stats_plots_dir + '\\cond_' + v + '_' + d + '.png'
+            plot.savefig(file)
+            
+
+    
+#hue for highlighting other aspects    
+#row like col for matrix
+
 def get_stats(): 
     #global
     compare_methods()
@@ -301,7 +399,10 @@ def get_stats():
     compare_vars_local()
     compare_vars_conds_local()
     
-
+    # p_val_local('mc_w')
+    # p_val_conds_local('mc_w')
+    # p_val_conds_vars_local('mc_w')  
+    
 get_stats()
 
 #TODO fix abomination code above (simplify /reuse method code)
@@ -310,23 +411,16 @@ get_stats()
 
 data_w = data[data['method'] == 'w']
 
-# condition
-group_stats(data_w, 'condition', 'F1')
-# ==> much betetr at detecting signal then at detecting baseline or difference
-
-for d in d_vars:
-    print("\n", d, "\n")
-    for i in i_vars:
-        group_stats(data_w, i, d)
-
-# (probs a lot of false positives in baseline
-# and a lot of false negatives in diff)
-
 #data_w.plot.scatter(x='crit_p_val', y = 'F1')
 
 sb.lmplot(x='crit_p_val', y='F1', data=data_w, fit_reg=True)
 sb.lmplot(x='total', y='F1', data=data_w, fit_reg=True)
 sb.lmplot(x='total', y='crit_p_val', data=data_w, fit_reg=True)
+
+sb.lmplot(data=data_w, 
+        x='type_I_ER', y='type_II_ER', 
+        scatter = True,
+        fit_reg=True)
 
 # as the number of tests increases the crit_p_value decreases
 # lower crit p val => lower F1
@@ -335,6 +429,14 @@ sb.lmplot(x='crit_p_val', y='FP', data=data_w, fit_reg=True)
 sb.lmplot(x='crit_p_val', y='FN', data=data_w, fit_reg=True)
 
 # higher crit_p_val => lower FP (type I) and especially lower FN (type II)
+
+sb.lmplot(data=data_w, 
+        x='type_I_ER', y='type_II_ER', 
+        col = 'condition',
+        hue = 'band_pass',
+        scatter = True,
+        fit_reg=True,
+        facet_kws=dict(sharex=False, sharey=False))
 
 # STATISTICAL TESTS
 sb.lmplot(x='crit_p_val', y='FN', data=data_w, fit_reg=True)
