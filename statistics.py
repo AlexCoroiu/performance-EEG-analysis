@@ -13,6 +13,14 @@ import numpy as np
 from results import get_metrics
 from file_manager import do_dir
 import matplotlib.pyplot as plt
+from itertools import repeat
+
+#variables
+simulation_vars = ['amplitude', 'noise', 'band_pass']
+measurement_vars = ['window_size', 'density', 'location']
+independent_vars = simulation_vars + measurement_vars
+dependent_vars = ['F1','type_I_ER','type_II_ER'] 
+stats_vars = ['M', 'SD']
 
 #HELPING FUNCTIONS
 def load_final_results():
@@ -21,306 +29,336 @@ def load_final_results():
 
     return data
 
-def group_stats(data, i_var, d_var):
-    grouped = data.groupby(i_var)
-    return [grouped[d_var].mean(), grouped[d_var].std()]
+def local_stats(data, var):
+    #(mean, sd)
+    return [data[var].mean(), data[var].std()]
 
-def group_metrics(data):
-    #(TN, FP, FN, TP, precision, recall, F1) 
-    global_results = get_metrics(data['expected'],
-                                 data['global_significant'])
-    return global_results
+def global_metrics(data):
+    #(TN, FP, FN, TP, precision, recall, F1, type_I_ER, type_II_ER)
+    (TN, FP, FN, TP, precision, recall, 
+     F1, type_I_ER, type_II_ER) = get_metrics(data['expected'],
+                                              data['global_significant'])
+    return (F1, type_I_ER, type_II_ER)
 
 def split_data(data, var):
-    vars_data = []
+    vars_data = {}
     vals = data[var].unique()
 
     for val in vals:
         val_data = data[data[var] == val]
-        vars_data.append(val_data)
+        vars_data[val] = val_data
 
     return vars_data
-
-# SETUP
-#load final results
-data = load_final_results()
-
-#variables
-sim_vars = ['amplitude', 'noise', 'band_pass']
-
-meas_vars = ['window_size', 'density', 'location']
-
-i_vars = sim_vars + meas_vars
-
-methods = ['mc_w', 'mc_b', 'cp'] #or get from unique
-conditions = ['baseline', 'vs_right', 'vs_left', 'difference']
-
-d_vars = ['F1','type_I_ER','type_II_ER'] #TODO ad expected at local level
-
-# expected global results
-data['expected'] = np.where(data['condition'] == 'baseline', False, True) #TODO addd expected at global level
-
-#splitting data
-methods_data = split_data(data, 'method')
-m_names = data['method'].unique()
-
-#directories
-stats_dir = "statistics"
-do_dir(stats_dir)
 
 # SUMAMRY STATISTICS
 
 # I. Between Method
 
-# global
-def compare_methods():
+#global methods
+def compare_methods_global(stats_dir, methods):
     methods_metrics = []
     
-    for m in methods_data:
-        m_name = m['method'].iloc[0]
-        m_metrics = [m_name]
-
-        metrics = group_metrics(m)
-        m_metrics.extend(metrics)
+    for m_name, m_data in methods.items():
+        metrics = global_metrics(m_data)
+        m_metrics = zip(repeat(m_name), dependent_vars, metrics)
         
-        methods_metrics.append(m_metrics)
+        methods_metrics.extend(m_metrics)
         
     methods_metrics_df = pd.DataFrame(methods_metrics, 
-                              columns =['method'] + d_vars)
-
-    dataframe_file = stats_dir + '\\compare_methods.csv'
-    methods_metrics_df.to_csv(dataframe_file, index = False)
+                                      columns = ['method', 'metric', 'value'])
     
-#global per condition
-def compare_methods_conds():
+    methods_metrics_df = methods_metrics_df.pivot(index = 'metric',
+                                                  columns = 'method',
+                                                  values = 'value')
+    
+    methods_metrics_df = methods_metrics_df.round(decimals = 4)
+    
+    dataframe_file = stats_dir + '\\global_comparison_methods.csv'
+    methods_metrics_df.to_csv(dataframe_file)
+    
+#global methods per condition
+def compare_methods_conds_global(stats_dir, methods):
     methods_metrics = []
     
-    for m in methods_data:
-        m_name = m['method'].iloc[0]
-        m_cond_data = split_data(m, 'condition')
+    for m_name, m_data in methods.items():
+        
+        m_conds = split_data(m_data, 'condition')
 
-        for mc in m_cond_data:
-            c_name = mc['condition'].iloc[0]
-            mc_metrics = [m_name,c_name]
+        for c_name, mc_data in m_conds.items():
+            metrics = global_metrics(mc_data)
+            mc_metrics = zip(repeat(m_name), repeat(c_name), 
+                            dependent_vars, metrics)
             
-            metrics = group_metrics(mc)
-            mc_metrics.extend(metrics)
-            
-            methods_metrics.append(mc_metrics)
+            methods_metrics.extend(mc_metrics)
     
     methods_metrics_df = pd.DataFrame(methods_metrics, 
-                                      columns =['method', 'condition'] + d_vars)
-
-    dataframe_file = stats_dir + '\\compare_methods_conds.csv'
-    methods_metrics_df.to_csv(dataframe_file, index = False)
-
-
-def compare_method_vars(m, var, stats_dir):
-    m_name = m['method'].iloc[0]
-    m_var_data = split_data(m, var)
+                                      columns =['method', 'condition', 'metric', 'value'])
     
-    method_vars_metrics = []
+    methods_metrics_df = methods_metrics_df.pivot(index = ['condition', 'metric'],
+                                                  columns = 'method',
+                                                  values = 'value')
     
-    for mv in m_var_data:
-        v_name = mv[var].iloc[0]
-        mv_metrics = [m_name,v_name]
-        
-        metrics = group_metrics(mv)
-        mv_metrics.extend(metrics)
-        
-        method_vars_metrics.append(mv_metrics)
+    methods_metrics_df = methods_metrics_df.round(decimals = 4)
 
-    method_metrics_df = pd.DataFrame(method_vars_metrics, 
-                                     columns =['method', var] + d_vars)
+    dataframe_file = stats_dir + '\\global_comparison_methods_conds.csv'
+    methods_metrics_df.to_csv(dataframe_file)
 
-    dataframe_file = stats_dir + '\\' + var + '.csv'
-    method_metrics_df.to_csv(dataframe_file, index = False)
+#local methods
+def compare_methods_local(stats_dir, methods):
+    d_stats = []
     
-def compare_vars():
-    for m in methods_data:
-        m_name = m['method'].iloc[0]
-        stats_m_dir = stats_dir + '\\' + m_name
-        do_dir(stats_m_dir)
+    for m_name, m_data in methods.items():
+        for d in dependent_vars:
+            stats = local_stats(m_data, d)
+            m_stats = zip(repeat(m_name), repeat(d), stats_vars, stats)
+
+            d_stats.extend(m_stats)
         
-        for v in i_vars:
-            compare_method_vars(m, v, stats_m_dir)
-            
-def compare_method_vars_cond(m, var, stats_dir):
-    m_name = m['method'].iloc[0]
-    m_var_data = split_data(m, var)
+    d_stats_df = pd.DataFrame(d_stats,
+                              columns = ['method', 'metric',  'stats', 'value'])
     
-    method_vars_metrics = []
+    d_stats_df = d_stats_df.pivot(index = ['metric', 'stats'],
+                                  columns = 'method',
+                                  values = 'value')
     
-    for mv in m_var_data:
-        v_name = mv[var].iloc[0]
-        m_cond_data = split_data(mv, 'condition')
-        
-        for mc in m_cond_data:
-            c_name = mc['condition'].iloc[0]
-            mc_metrics = [m_name,v_name,c_name]
-            
-            metrics = group_metrics(mc)
-            mc_metrics.extend(metrics)
-            
-            method_vars_metrics.append(mc_metrics)
-
-    method_metrics_df = pd.DataFrame(method_vars_metrics, 
-                                     columns = ['method', var, 'condition'] + d_vars)
-
-    dataframe_file = stats_dir + '\\' + var +'_conds.csv'
-    method_metrics_df.to_csv(dataframe_file, index = False)
-            
-def compare_vars_cond():
-    for m in methods_data:
-        m_name = m['method'].iloc[0]
-        stats_m_dir = stats_dir + '\\' + m_name
-        do_dir(stats_m_dir)
-        
-        for v in i_vars:
-            compare_method_vars_cond(m, v, stats_m_dir)
-
-#local level
-def compare_methods_local():
-    stats = {}
-    for d in d_vars:
-        d_stats = []
-        for m in methods_data:
-            m_name = m['method'].iloc[0]
-            
-            m_stats = [m_name]
-            m_stats.extend([m[d].mean(),m[d].std()])
-            
-            d_stats.append(m_stats)
-        
-        d_stats_df = pd.DataFrame(d_stats,
-                                  columns = ['method', 
-                                             'M', 'SD'])
-        d_stats_df = d_stats_df.set_index('method')
-        stats[d] = d_stats_df
-        
-    stats_df = pd.concat(stats, axis = 1,
-                         names = ['metric'] )
+    d_stats_df = d_stats_df.round(decimals = 4)
     
     dataframe_file = stats_dir + '\\local_comaprison_methods.csv'
-    stats_df.to_csv(dataframe_file)
+    d_stats_df.to_csv(dataframe_file)
 
-def compare_methods_conds_local():
-    stats = {}
-    for d in d_vars:
-        d_stats = []
-        for m in methods_data:
-            m_name = m['method'].iloc[0]
-            m_cond_data = split_data(m, 'condition')
-            for mc in m_cond_data:
-                c_name = mc['condition'].iloc[0]
-                m_stats = [m_name, c_name]
-                m_stats.extend([mc[d].mean(),mc[d].std()])
+
+#local per condition
+def compare_methods_conds_local(stats_dir, methods):
+    d_stats = []
+    
+    for m_name, m_data in methods.items():
+        
+        m_conds = split_data(m_data, 'condition')
+        
+        for c_name, mc_data in m_conds.items():
+            
+            for d in dependent_vars:
                 
-                d_stats.append(m_stats)
+                stats = local_stats(mc_data, d)
+                
+                mc_stats = zip(repeat(m_name), repeat(c_name), repeat(d),
+                                stats_vars, stats)
+                d_stats.extend(mc_stats)
             
-            d_stats_df = pd.DataFrame(d_stats,
-                                      columns = ['method', 'condition',
-                                                  'M', 'SD'])
-            d_stats_df = d_stats_df.set_index(['method', 'condition'])
-            stats[d] = d_stats_df
             
-        stats_df = pd.concat(stats, axis = 1,
-                              names = ['metric'] )
+    d_stats_df = pd.DataFrame(d_stats, 
+                              columns =['method', 'condition', 'metric',
+                                         'stats', 'value'])
+    
+    d_stats_df = d_stats_df.pivot(index = ['condition', 'metric', 'stats'],
+                                  columns = 'method',
+                                  values = 'value')
+    
+    d_stats_df = d_stats_df.round(decimals = 4)
     
     dataframe_file = stats_dir + '\\local_comaprison_methods_conds.csv'
-    stats_df.to_csv(dataframe_file)
-    
-def compare_vars_local():
-    for m in methods_data:
-        m_name = m['method'].iloc[0]
-        stats_m_dir = stats_dir + '\\' + m_name
-        for var in i_vars:
-            mv_data = split_data(m, var)
-            mv_stats = {}
-            for d in d_vars:
-                d_stats = []
-                for mv in mv_data:
-                    v_name = mv[var].iloc[0]
-                    v_stats = [m_name, v_name]
-                    v_stats.extend([mv[d].mean(),mv[d].std()])
-                    
-                    d_stats.append(v_stats)
-                
-                d_stats_df = pd.DataFrame(d_stats,
-                                          columns = ['method', var,
-                                                      'M', 'SD'])
-                d_stats_df = d_stats_df.set_index(['method', var])
-                mv_stats[d] = d_stats_df
-             
-            stats_df = pd.concat(mv_stats, axis = 1,
-                                 names = ['metric'])
-            
-            dataframe_file = stats_m_dir + '\\' + var + '_local.csv'
-            stats_df.to_csv(dataframe_file)
+    d_stats_df.to_csv(dataframe_file)
 
-                
-def compare_vars_conds_local():
-    for m in methods_data:
-        m_name = m['method'].iloc[0]
-        stats_m_dir = stats_dir + '\\' + m_name
-        for var in i_vars:
-            mv_data = split_data(m, var)
-            mv_stats = {}
-            for d in d_vars:
-                d_stats = []
-                for mv in mv_data:
-                    v_name = mv[var].iloc[0]
-                    mv_cond_data = split_data(mv, 'condition')
-                    for mvc in mv_cond_data:
-                        c_name = mvc['condition'].iloc[0]
-                        v_stats = [m_name, v_name, c_name]
-                        v_stats.extend([mvc[d].mean(),mvc[d].std()])
-                        
-                        d_stats.append(v_stats)
-                
-                d_stats_df = pd.DataFrame(d_stats,
-                                          columns = ['method', var, 'condition',
-                                                      'M', 'SD'])
-                d_stats_df = d_stats_df.set_index(['method', var])
-                mv_stats[d] = d_stats_df
-             
-            stats_df = pd.concat(mv_stats, axis = 1,
-                                 names = ['metric'])
-            
-            dataframe_file = stats_m_dir + '\\' + var + '_conds_local.csv'
-            stats_df.to_csv(dataframe_file)
+
+# II. Within Methods
+
+#global
+def compare_vars_global(stats_i_dir, mi_split, m_name, i):
+    i_stats = []
+    
+    for i_name, mi_data in mi_split.items():
+        metrics = global_metrics(mi_data)
+        mc_metrics = zip(repeat(m_name), repeat(i_name), 
+                        dependent_vars, metrics)
         
-#p_val
+        i_stats.extend(mc_metrics)
 
-# def p_val_local(method):
-#     data_m = data[data['method'] == method]
-#     stats_plots_dir = stats_dir + '\\' + method + '\\plots'
-#     do_dir(stats_plots_dir)
+    i_stats_df = pd.DataFrame(i_stats, 
+                              columns =['method', i, 'metric', 'value'])
     
-#     #plot scatter
-#     for d in d_vars:
-#         s_plot = sb.lmplot(data=data_m, 
-#                     x='crit_p_val', y=d, 
-#                     scatter = True,
-#                     fit_reg=True,
-#                     facet_kws=dict(sharex=False, sharey=False))
-#         file = stats_plots_dir + '\\' + d + '_scatter.png'
-#         s_plot.savefig(file)
+    i_stats_df = i_stats_df.pivot(index = ['method', 'metric'],
+                                  columns = i,
+                                  values = 'value')
     
-#     #plot violin
-#     for d in d_vars:
-#         v_plot = sb.violinplot(data=data_m, 
-#                     x='crit_p_val', y=d, 
-#                     facet_kws=dict(sharex=False, sharey=False))
-#         file = stats_plots_dir + '\\' + d + '_violin.png'
-#         v_plot.get_figure().savefig(file)
+    i_stats_df = i_stats_df.round(decimals = 4)
+
+    dataframe_file = stats_i_dir + '\\global_comparison_' + i + '.csv'
+    i_stats_df.to_csv(dataframe_file)
+            
+
+def compare_vars_conds_global(stats_i_dir, mi_split, m_name, i):
+     i_metrics = []
+     
+     for i_name, mi_data in mi_split.items():
+         
+         mi_conds = split_data(mi_data, 'condition')
+
+         for c_name, mic_data in mi_conds.items():
+         
+             metrics = global_metrics(mi_data)
+             mic_metrics = zip(repeat(m_name), repeat(i_name), repeat(c_name),
+                             dependent_vars, metrics)
+             
+             i_metrics.extend(mic_metrics)
+
+     i_metrics_df = pd.DataFrame(i_metrics, 
+                               columns =['method', i, 'condition', 'metric', 'value'])
+     
+     i_metrics_df = i_metrics_df.pivot(index = ['method', 'condition', 'metric'],
+                                   columns = i,
+                                   values = 'value')
+     
+     i_metrics_df = i_metrics_df.round(decimals = 4)
+
+     dataframe_file = stats_i_dir + '\\global_comparison_' + i + '_conds.csv'
+     i_metrics_df.to_csv(dataframe_file)
+
+
+def compare_vars_local(stats_i_dir, mi_split, m_name, i):
+    d_stats = []
     
+    for i_name, mi_data in mi_split.items():
+        for d in dependent_vars:
+            
+            stats = local_stats(mi_data, d)
+            m_stats = zip(repeat(m_name), repeat (i_name), repeat(d), 
+                          stats_vars, stats)
+
+            d_stats.extend(m_stats)
+            
+            d_stats_df = pd.DataFrame(d_stats,
+                                      columns = ['method', i, 'metric', 'stats', 'value'])
+            
+            d_stats_df = d_stats_df.pivot(index = ['method', 'metric', 'stats'],
+                                          columns = i,
+                                          values = 'value')
+            
+            d_stats_df = d_stats_df.round(decimals = 4)
+            
+            dataframe_file = stats_i_dir + '\\local_comparison_' + i + '.csv'
+            d_stats_df.to_csv(dataframe_file)
+            
+              
+def compare_vars_conds_local(stats_i_dir, mi_split, m_name, i):
+    d_stats = []
+    
+    for i_name, mi_data in mi_split.items():
+        
+        mi_conds = split_data(mi_data, 'condition')
+        
+        for c_name, mic_data in mi_conds.items():
+            
+            for d in dependent_vars:
+                
+                stats = local_stats(mic_data, d)
+                m_stats = zip(repeat(m_name), repeat (i_name), repeat(c_name),
+                              repeat(d), stats_vars, stats)
+    
+                d_stats.extend(m_stats)
+                
+                d_stats_df = pd.DataFrame(d_stats,
+                                          columns = ['method', i, 'condition', 
+                                                     'metric', 'stats', 'value'])
+                
+                d_stats_df = d_stats_df.pivot(index = ['method', 'condition', 'metric', 'stats'],
+                                              columns = i,
+                                              values = 'value')
+                
+                d_stats_df = d_stats_df.round(decimals = 4)
+                
+                dataframe_file = stats_i_dir + '\\local_comparison_' + i + '_conds.csv'
+                d_stats_df.to_csv(dataframe_file)
+        
+#get statistics
+def get_stats(): 
+    
+    # SETUP
+    #load final results
+    data = load_final_results()
+
+    # expected global results
+    data['expected'] = np.where(data['condition'] == 'baseline', False, True) 
+    
+    methods = data['method'].unique()
+
+    #splitting data
+    methods = split_data(data, 'method')
+
+    #directories
+    stats_dir = "statistics"
+    do_dir(stats_dir)
+    
+    # STATS 
+    
+    #between methods
+    
+    #global metrics
+    compare_methods_global(stats_dir, methods)
+    compare_methods_conds_global(stats_dir, methods)
+    
+    #local stats
+    #TODO probably doesnt make sense since they function differently
+    # compare_methods_local(stats_dir, methods)
+    # compare_methods_conds_local(stats_dir, methods)
+
+    #within methods & conditions (vars)
+    
+    #global
+
+    #local
+    
+    for m_name, m_data in methods.items():
+        
+        #create directory
+        stats_m_dir = stats_dir + '\\' + m_name
+        do_dir(stats_m_dir)
+        
+        for i in independent_vars:
+            
+            #create directory
+            stats_i_dir = stats_m_dir + '\\' + i
+            do_dir(stats_i_dir)
+            
+            mi_data = split_data(m_data, i)
+            
+            #global metrics
+            compare_vars_global(stats_i_dir, mi_data, m_name, i)
+            compare_vars_conds_global(stats_i_dir, mi_data, m_name, i)
+            
+            #local stats
+            compare_vars_local(stats_i_dir, mi_data, m_name, i)
+            compare_vars_conds_local(stats_i_dir, mi_data, m_name, i)
+    
+
+    
+    # p_val_local('mc_w')
+    # p_val_conds_local('mc_w')
+    # p_val_conds_vars_local('mc_w')  
+
+get_stats()
+
+
+#%%     
+
+#TODO add plots for local tests: box plots, violin plots?
+def local_vars_plots(stats_i_dir, mi_data, m_name, i):
+    #split per d
+    
+    #reshape
+    
+    # paired diff (between all possible combos)
+    
+
+    
+#%%
+#TODO P_VAL
+
 def p_val_conds_local(method):
     data_m = data[data['method'] == method]
     stats_plots_dir = stats_dir + '\\' + method + '\\plots'
     do_dir(stats_plots_dir)
     
-    #plot scatter #TODO is it  really linear, can we talk about lienarity?
+    #plot scatter
     for d in d_vars:
         plot = sb.lmplot(data=data_m, 
                     x='crit_p_val', y=d, 
@@ -386,61 +424,7 @@ def p_val_conds_vars_local(method, independent_vars):
 #hue for highlighting other aspects    
 #row like col for matrix
 
-def get_stats(): 
-    #global
-    compare_methods()
-    compare_methods_conds()
-    compare_vars()
-    compare_vars_cond()
     
-    #local
-    compare_methods_local()
-    compare_methods_conds_local()
-    compare_vars_local()
-    compare_vars_conds_local()
-    
-    # p_val_local('mc_w')
-    # p_val_conds_local('mc_w')
-    # p_val_conds_vars_local('mc_w')  
-    
-get_stats()
 
-#TODO fix abomination code above (simplify /reuse method code)
 
-#%% EXPLORATION VARIABLES
 
-data_w = data[data['method'] == 'w']
-
-#data_w.plot.scatter(x='crit_p_val', y = 'F1')
-
-sb.lmplot(x='crit_p_val', y='F1', data=data_w, fit_reg=True)
-sb.lmplot(x='total', y='F1', data=data_w, fit_reg=True)
-sb.lmplot(x='total', y='crit_p_val', data=data_w, fit_reg=True)
-
-sb.lmplot(data=data_w, 
-        x='type_I_ER', y='type_II_ER', 
-        scatter = True,
-        fit_reg=True)
-
-# as the number of tests increases the crit_p_value decreases
-# lower crit p val => lower F1
-
-sb.lmplot(x='crit_p_val', y='FP', data=data_w, fit_reg=True)
-sb.lmplot(x='crit_p_val', y='FN', data=data_w, fit_reg=True)
-
-# higher crit_p_val => lower FP (type I) and especially lower FN (type II)
-
-sb.lmplot(data=data_w, 
-        x='type_I_ER', y='type_II_ER', 
-        col = 'condition',
-        hue = 'band_pass',
-        scatter = True,
-        fit_reg=True,
-        facet_kws=dict(sharex=False, sharey=False))
-
-# STATISTICAL TESTS
-sb.lmplot(x='crit_p_val', y='FN', data=data_w, fit_reg=True)
-
-# higher crit_p_val => lower FP (type I) and especially lower FN (type II)
-
-# STATISTICAL TESTS

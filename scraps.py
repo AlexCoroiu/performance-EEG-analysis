@@ -542,3 +542,66 @@ for amp in amplitudes:
                             
                             
 """
+
+# #%% EXPLORATION VARIABLES
+
+# data_w = data[data['method'] == 'w']
+
+# #data_w.plot.scatter(x='crit_p_val', y = 'F1')
+
+# sb.lmplot(x='crit_p_val', y='F1', data=data_w, fit_reg=True)
+# sb.lmplot(x='total', y='F1', data=data_w, fit_reg=True)
+# sb.lmplot(x='total', y='crit_p_val', data=data_w, fit_reg=True)
+
+# sb.lmplot(data=data_w, 
+#         x='type_I_ER', y='type_II_ER', 
+#         scatter = True,
+#         fit_reg=True)
+
+# # as the number of tests increases the crit_p_value decreases
+# # lower crit p val => lower F1
+
+# sb.lmplot(x='crit_p_val', y='FP', data=data_w, fit_reg=True)
+# sb.lmplot(x='crit_p_val', y='FN', data=data_w, fit_reg=True)
+
+# # higher crit_p_val => lower FP (type I) and especially lower FN (type II)
+
+# sb.lmplot(data=data_w, 
+#         x='type_I_ER', y='type_II_ER', 
+#         col = 'condition',
+#         hue = 'band_pass',
+#         scatter = True,
+#         fit_reg=True,
+#         facet_kws=dict(sharex=False, sharey=False))
+
+# # STATISTICAL TESTS
+# sb.lmplot(x='crit_p_val', y='FN', data=data_w, fit_reg=True)
+
+
+
+
+
+# def p_val_local(method):
+#     data_m = data[data['method'] == method]
+#     stats_plots_dir = stats_dir + '\\' + method + '\\plots'
+#     do_dir(stats_plots_dir)
+    
+#     #plot scatter
+#     for d in d_vars:
+#         s_plot = sb.lmplot(data=data_m, 
+#                     x='crit_p_val', y=d, 
+#                     scatter = True,
+#                     fit_reg=True,
+#                     facet_kws=dict(sharex=False, sharey=False))
+#         file = stats_plots_dir + '\\' + d + '_scatter.png'
+#         s_plot.savefig(file)
+    
+#     #plot violin
+#     for d in d_vars:
+#         v_plot = sb.violinplot(data=data_m, 
+#                     x='crit_p_val', y=d, 
+#                     facet_kws=dict(sharex=False, sharey=False))
+#         file = stats_plots_dir + '\\' + d + '_violin.png'
+#         v_plot.get_figure().savefig(file)
+
+# # higher crit_p_val => lower FP (type I) and especially lower FN (type II)

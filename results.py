@@ -134,7 +134,7 @@ def summary_results_cp(window_size,density,local,cond):
                                           analysed['significant'])
     
     positives = TP_count + FP_count
-    global_significant = (positives > 0) #!!!
+    global_significant = (positives > 0)
                                           
     #save
     return [window_size, density, local, 
