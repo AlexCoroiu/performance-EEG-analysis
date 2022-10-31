@@ -14,6 +14,7 @@ from results import get_metrics
 from file_manager import do_dir
 import matplotlib.pyplot as plt
 from itertools import repeat
+import scipy
 
 #variables
 simulation_vars = ['amplitude', 'noise', 'band_pass']
@@ -21,6 +22,7 @@ measurement_vars = ['window_size', 'density', 'location']
 independent_vars = simulation_vars + measurement_vars
 dependent_vars = ['F1','type_I_ER','type_II_ER'] 
 stats_vars = ['M', 'SD']
+
 
 #HELPING FUNCTIONS
 def load_final_results():
@@ -268,7 +270,81 @@ def compare_vars_conds_local(stats_i_dir, mi_split, m_name, i):
                 
                 dataframe_file = stats_i_dir + '\\local_comparison_' + i + '_conds.csv'
                 d_stats_df.to_csv(dataframe_file)
+ 
+
+#plots for local tests: box plots, violin plots?
+def plots_vars_local(stats_i_dir, m_split, m_name, i):
+    
+    stats_plots_dir = stats_i_dir + '\\plots'
+    do_dir(stats_plots_dir)
+  
+    m_conds = split_data(m_split, 'condition')
+
+    for c_name, mc_data in m_conds.items(): #for each cond
         
+    #split per d
+        for d in dependent_vars: #for each metric
+            
+            plot = sb.violinplot(data=mc_data, 
+                                 x=i, y=d)
+            file = stats_plots_dir + '\\' + d + '_' + c_name + '_violin.png'
+            plot.get_figure().savefig(file)
+            plot.get_figure().clf()
+            
+
+def test_diff_local(stats_i_dir, m_split, m_name, i):
+    
+    stats_tests_dir = stats_i_dir + '\\tests'
+    do_dir(stats_tests_dir)
+  
+    m_conds = split_data(m_split, 'condition')
+
+    for c_name, mc_data in m_conds.items(): #for each cond
+        
+    #split per d
+        for d in dependent_vars: #for each metric
+            
+            ids = list(set(['method', 'condition'] + independent_vars) - set([i]))    
+            d_data = mc_data.pivot(index = ids,
+                                   columns = i,
+                                   values = d)
+            
+            #matrix
+            d_matrix = []
+            
+            
+            #calcualte differences
+            vals = mc_data[i].unique()
+            for v1 in vals:
+                for v2 in vals:
+                    v_diff = d_data[v1] - d_data[v2]
+                    
+                    #rint(v_diff)
+                    
+                    #TODO test normality beforehand
+                    t_stat, p_val = scipy.stats.ttest_1samp(v_diff, 
+                                                            popmean = 0,
+                                                            alternative = 'two-sided')
+                
+                    
+                    reject = p_val < 0.05
+                    
+                    d_matrix.append([v1,v2,reject])
+                    
+            #save matrix
+            d_matrix_df = pd.DataFrame(data = d_matrix,
+                                        columns = ['v1', 'v2', 'reject'])
+            
+            d_matrix_df = d_matrix_df.pivot(index = 'v1',
+                                            columns = 'v2',
+                                            values = 'reject')
+            
+            
+            dataframe_file = stats_tests_dir + '\\' + d + '_' + c_name + '.csv'
+            d_matrix_df.to_csv(dataframe_file)
+                    
+                                    
+
 #get statistics
 def get_stats(): 
     
@@ -314,23 +390,26 @@ def get_stats():
         do_dir(stats_m_dir)
         
         for i in independent_vars:
-            
+
             #create directory
             stats_i_dir = stats_m_dir + '\\' + i
             do_dir(stats_i_dir)
-            
+        
             mi_data = split_data(m_data, i)
-            
             #global metrics
             compare_vars_global(stats_i_dir, mi_data, m_name, i)
             compare_vars_conds_global(stats_i_dir, mi_data, m_name, i)
-            
             #local stats
             compare_vars_local(stats_i_dir, mi_data, m_name, i)
             compare_vars_conds_local(stats_i_dir, mi_data, m_name, i)
-    
+            
+            #plots
+            plots_vars_local(stats_i_dir, m_data, m_name, i)
+            
+            #tests
+            test_diff_local(stats_i_dir, m_data, m_name, i)
+            
 
-    
     # p_val_local('mc_w')
     # p_val_conds_local('mc_w')
     # p_val_conds_vars_local('mc_w')  
@@ -338,16 +417,6 @@ def get_stats():
 get_stats()
 
 
-#%%     
-
-#TODO add plots for local tests: box plots, violin plots?
-def local_vars_plots(stats_i_dir, mi_data, m_name, i):
-    #split per d
-    
-    #reshape
-    
-    # paired diff (between all possible combos)
-    
 
     
 #%%

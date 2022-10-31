@@ -69,6 +69,8 @@ def prepare():
     #calcualte difference between conditions into new column
     df[c.LATERALIZATION] = df['vs_right'] - df['vs_left']
     
+    #TODO not modulo because ti matters if right or left is bigger?
+    
     df = df.reset_index()
 
     #prepare cond dfs

@@ -65,8 +65,11 @@ def get_metrics(expected, found):
         recall = 1
     else:
         recall = TP/(TP+FN)
-    
-    f1 = 2*precision*recall/(precision + recall)
+        
+    if precision == 0 and recall == 0:
+        f1 = 0
+    else:
+        f1 = 2*precision*recall/(precision + recall)
     
     #edge case type I error rate
     if FP == 0 and TN == 0: # no negatives in input data

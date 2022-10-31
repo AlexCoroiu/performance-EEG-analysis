@@ -92,6 +92,8 @@ def run():
                 'type_I_ER', 'type_II_ER']
 
     results_df = results_df[columns]
+    
+    #print(results_df.isnull().sum().sum()) #check for NaN
 
     dataframe_file = 'final_results.csv'
     results_df.to_csv(dataframe_file, index = False)
