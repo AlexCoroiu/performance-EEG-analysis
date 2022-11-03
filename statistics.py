@@ -26,7 +26,7 @@ stats_vars = ['M', 'SD']
 
 #HELPING FUNCTIONS
 def load_final_results():
-    dataframe_file = 'final_results.csv'
+    dataframe_file = 'results_ERP.csv'
     data = pd.read_csv(dataframe_file)
 
     return data
@@ -56,28 +56,6 @@ def split_data(data, var):
 
 # I. Between Method
 
-#global methods
-def compare_methods_global(stats_dir, methods):
-    methods_metrics = []
-    
-    for m_name, m_data in methods.items():
-        metrics = global_metrics(m_data)
-        m_metrics = zip(repeat(m_name), dependent_vars, metrics)
-        
-        methods_metrics.extend(m_metrics)
-        
-    methods_metrics_df = pd.DataFrame(methods_metrics, 
-                                      columns = ['method', 'metric', 'value'])
-    
-    methods_metrics_df = methods_metrics_df.pivot(index = 'metric',
-                                                  columns = 'method',
-                                                  values = 'value')
-    
-    methods_metrics_df = methods_metrics_df.round(decimals = 4)
-    
-    dataframe_file = stats_dir + '\\global_comparison_methods.csv'
-    methods_metrics_df.to_csv(dataframe_file)
-    
 #global methods per condition
 def compare_methods_conds_global(stats_dir, methods):
     methods_metrics = []
@@ -104,29 +82,6 @@ def compare_methods_conds_global(stats_dir, methods):
 
     dataframe_file = stats_dir + '\\global_comparison_methods_conds.csv'
     methods_metrics_df.to_csv(dataframe_file)
-
-#local methods
-def compare_methods_local(stats_dir, methods):
-    d_stats = []
-    
-    for m_name, m_data in methods.items():
-        for d in dependent_vars:
-            stats = local_stats(m_data, d)
-            m_stats = zip(repeat(m_name), repeat(d), stats_vars, stats)
-
-            d_stats.extend(m_stats)
-        
-    d_stats_df = pd.DataFrame(d_stats,
-                              columns = ['method', 'metric',  'stats', 'value'])
-    
-    d_stats_df = d_stats_df.pivot(index = ['metric', 'stats'],
-                                  columns = 'method',
-                                  values = 'value')
-    
-    d_stats_df = d_stats_df.round(decimals = 4)
-    
-    dataframe_file = stats_dir + '\\local_comaprison_methods.csv'
-    d_stats_df.to_csv(dataframe_file)
 
 
 #local per condition
@@ -165,29 +120,6 @@ def compare_methods_conds_local(stats_dir, methods):
 # II. Within Methods
 
 #global
-def compare_vars_global(stats_i_dir, mi_split, m_name, i):
-    i_stats = []
-    
-    for i_name, mi_data in mi_split.items():
-        metrics = global_metrics(mi_data)
-        mc_metrics = zip(repeat(m_name), repeat(i_name), 
-                        dependent_vars, metrics)
-        
-        i_stats.extend(mc_metrics)
-
-    i_stats_df = pd.DataFrame(i_stats, 
-                              columns =['method', i, 'metric', 'value'])
-    
-    i_stats_df = i_stats_df.pivot(index = ['method', 'metric'],
-                                  columns = i,
-                                  values = 'value')
-    
-    i_stats_df = i_stats_df.round(decimals = 4)
-
-    dataframe_file = stats_i_dir + '\\global_comparison_' + i + '.csv'
-    i_stats_df.to_csv(dataframe_file)
-            
-
 def compare_vars_conds_global(stats_i_dir, mi_split, m_name, i):
      i_metrics = []
      
@@ -214,33 +146,9 @@ def compare_vars_conds_global(stats_i_dir, mi_split, m_name, i):
 
      dataframe_file = stats_i_dir + '\\global_comparison_' + i + '_conds.csv'
      i_metrics_df.to_csv(dataframe_file)
-
-
-def compare_vars_local(stats_i_dir, mi_split, m_name, i):
-    d_stats = []
-    
-    for i_name, mi_data in mi_split.items():
-        for d in dependent_vars:
             
-            stats = local_stats(mi_data, d)
-            m_stats = zip(repeat(m_name), repeat (i_name), repeat(d), 
-                          stats_vars, stats)
-
-            d_stats.extend(m_stats)
-            
-            d_stats_df = pd.DataFrame(d_stats,
-                                      columns = ['method', i, 'metric', 'stats', 'value'])
-            
-            d_stats_df = d_stats_df.pivot(index = ['method', 'metric', 'stats'],
-                                          columns = i,
-                                          values = 'value')
-            
-            d_stats_df = d_stats_df.round(decimals = 4)
-            
-            dataframe_file = stats_i_dir + '\\local_comparison_' + i + '.csv'
-            d_stats_df.to_csv(dataframe_file)
-            
-              
+     
+#local
 def compare_vars_conds_local(stats_i_dir, mi_split, m_name, i):
     d_stats = []
     
@@ -273,7 +181,7 @@ def compare_vars_conds_local(stats_i_dir, mi_split, m_name, i):
  
 
 #plots for local tests: box plots, violin plots?
-def plots_vars_local(stats_i_dir, m_split, m_name, i):
+def plots_vars_conds_local(stats_i_dir, m_split, m_name, i):
     
     stats_plots_dir = stats_i_dir + '\\plots'
     do_dir(stats_plots_dir)
@@ -292,7 +200,7 @@ def plots_vars_local(stats_i_dir, m_split, m_name, i):
             plot.get_figure().clf()
             
 
-def test_diff_local(stats_i_dir, m_split, m_name, i):
+def test_diff_conds_local(stats_i_dir, m_split, m_name, i):
     
     stats_tests_dir = stats_i_dir + '\\tests'
     do_dir(stats_tests_dir)
@@ -369,13 +277,10 @@ def get_stats():
     #between methods
     
     #global metrics
-    compare_methods_global(stats_dir, methods)
     compare_methods_conds_global(stats_dir, methods)
     
     #local stats
-    #TODO probably doesnt make sense since they function differently
-    # compare_methods_local(stats_dir, methods)
-    # compare_methods_conds_local(stats_dir, methods)
+    compare_methods_conds_local(stats_dir, methods)
 
     #within methods & conditions (vars)
     
@@ -397,17 +302,15 @@ def get_stats():
         
             mi_data = split_data(m_data, i)
             #global metrics
-            compare_vars_global(stats_i_dir, mi_data, m_name, i)
             compare_vars_conds_global(stats_i_dir, mi_data, m_name, i)
             #local stats
-            compare_vars_local(stats_i_dir, mi_data, m_name, i)
             compare_vars_conds_local(stats_i_dir, mi_data, m_name, i)
             
             #plots
-            plots_vars_local(stats_i_dir, m_data, m_name, i)
+            plots_vars_conds_local(stats_i_dir, m_data, m_name, i)
             
             #tests
-            test_diff_local(stats_i_dir, m_data, m_name, i)
+            test_diff_conds_local(stats_i_dir, m_data, m_name, i)
             
 
     # p_val_local('mc_w')

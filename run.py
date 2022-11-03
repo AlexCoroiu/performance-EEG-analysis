@@ -19,15 +19,17 @@ import pandas as pd
 
 # SIMULATE-ANALYSE-CUMMULATE DATA
 def run_data():
+    #ERP
     simulation.simulate()
     processing.process()
     preparation.prepare()
-     
+      
 def run_methods():
+    #ERP
     multiple_comparisons.test_window()
     multiple_comparisons.test_bonferroni()
     cluster_permutations.test()
-    
+        
 def run_results():
     res_dfs = []
     res_dfs.append(results.results_mc_window())
@@ -36,7 +38,7 @@ def run_results():
     
     #concat all results
     res = pd.concat(res_dfs, axis=0)
-    print('res df\n', res)
+    #print('res df\n', res)
     return res
     
 def run_dataset(amplitude, noise_filter, band_pass_filtering):
@@ -59,28 +61,26 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
 
 #RUN ALL DATASETS
     
-#TODO see where to declare these variables ranges (here or in the constants file)
 #I think better here, to see celarly the role and workings of the setup functions
 amplitudes = [(40,20), (60,30), (60, 20), (80,40), (80,30), (80,20)] #mV (contra, ipsi)
 noise_filters = [(0.1,-0.1,0.02),(0.2,-0.2,0.04)] #infinite impulse response filter
 band_pass_filtering = [True,False]
 
 def run():
-    final_results = []
+    results_ERP = []
     for amp in amplitudes:
         for nf in noise_filters:
             for bpf in band_pass_filtering:
                 res = run_dataset(amp, nf, bpf)
                 
-                #TODO how to save amp?
                 res['amplitude'] = str(amp)
                 res['noise'] = "high" if (nf[0] == 0.1) else "low" 
                 res['band_pass'] = bpf #str(bpf)
                 
-                final_results.append(res) 
+                results_ERP.append(res) 
                 
     #save cummulated results to df
-    results_df = pd.concat(final_results, axis=0)
+    results_df = pd.concat(results_ERP, axis=0)
     
     columns = ['amplitude', 'noise', 'band_pass',
                 'window_size', 'density', 'location', 
@@ -95,7 +95,7 @@ def run():
     
     #print(results_df.isnull().sum().sum()) #check for NaN
 
-    dataframe_file = 'final_results.csv'
+    dataframe_file = 'results_ERP.csv'
     results_df.to_csv(dataframe_file, index = False)
 
 run()

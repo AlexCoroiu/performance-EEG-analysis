@@ -168,7 +168,7 @@ def results_mc(method):
                                         'precision', 'recall', 'F1',
                                         'type_I_ER', 'type_II_ER'])
 
-    dataframe_file = dataset + '\\results_' + method + '.csv'
+    dataframe_file = dataset + '\\results_ERP_' + method + '.csv'
     results_df.to_csv(dataframe_file, index = False)
     
     return results_df 

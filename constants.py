@@ -181,8 +181,8 @@ T_MAX = 0.5
 BASELINE = (T_MIN, 0) #or None (for baseline correction)
 
 # PREPARATION
-LATERALIZATION = 'difference'
-TEST_CONDITIONS = CONDITIONS + [LATERALIZATION] #4 total
+DIFFERENCE = 'difference'
+TEST_CONDITIONS = CONDITIONS + [DIFFERENCE] #4 total
 
 # window size (multiples of 4)
 WINDOW_SIZE = [0.004, 0.012, 0.02] # 4 ms (original), 12 ms, or 20 ms
