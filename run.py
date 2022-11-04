@@ -19,13 +19,11 @@ import pandas as pd
 
 # SIMULATE-ANALYSE-CUMMULATE DATA
 def run_data():
-    #ERP
     simulation.simulate()
     processing.process()
     preparation.prepare()
       
 def run_methods():
-    #ERP
     multiple_comparisons.test_window()
     multiple_comparisons.test_bonferroni()
     cluster_permutations.test()
@@ -67,7 +65,7 @@ noise_filters = [(0.1,-0.1,0.02),(0.2,-0.2,0.04)] #infinite impulse response fil
 band_pass_filtering = [True,False]
 
 def run():
-    results_ERP = []
+    results = []
     for amp in amplitudes:
         for nf in noise_filters:
             for bpf in band_pass_filtering:
@@ -77,10 +75,10 @@ def run():
                 res['noise'] = "high" if (nf[0] == 0.1) else "low" 
                 res['band_pass'] = bpf #str(bpf)
                 
-                results_ERP.append(res) 
+                results.append(res) 
                 
     #save cummulated results to df
-    results_df = pd.concat(results_ERP, axis=0)
+    results_df = pd.concat(results, axis=0)
     
     columns = ['amplitude', 'noise', 'band_pass',
                 'window_size', 'density', 'location', 
@@ -88,14 +86,13 @@ def run():
                 'crit_p_val', 'total',
                 'positives', 'global_significant',
                 'TP', 'FP', 'TN', 'FN',
-                'precision', 'recall', 'F1',
                 'type_I_ER', 'type_II_ER']
 
     results_df = results_df[columns]
     
     #print(results_df.isnull().sum().sum()) #check for NaN
 
-    dataframe_file = 'results_ERP.csv'
+    dataframe_file = 'results.csv'
     results_df.to_csv(dataframe_file, index = False)
 
 run()

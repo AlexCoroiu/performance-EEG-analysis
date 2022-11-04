@@ -20,13 +20,13 @@ import scipy
 simulation_vars = ['amplitude', 'noise', 'band_pass']
 measurement_vars = ['window_size', 'density', 'location']
 independent_vars = simulation_vars + measurement_vars
-dependent_vars = ['F1','type_I_ER','type_II_ER'] 
+dependent_vars = ['type_I_ER','type_II_ER'] 
 stats_vars = ['M', 'SD']
 
 
 #HELPING FUNCTIONS
 def load_final_results():
-    dataframe_file = 'results_ERP.csv'
+    dataframe_file = 'results.csv'
     data = pd.read_csv(dataframe_file)
 
     return data
@@ -36,11 +36,11 @@ def local_stats(data, var):
     return [data[var].mean(), data[var].std()]
 
 def global_metrics(data):
-    #(TN, FP, FN, TP, precision, recall, F1, type_I_ER, type_II_ER)
-    (TN, FP, FN, TP, precision, recall, 
-     F1, type_I_ER, type_II_ER) = get_metrics(data['expected'],
+    #(TN, FP, FN, TP, type_I_ER, type_II_ER)
+    (TN, FP, FN, TP,
+     type_I_ER, type_II_ER) = get_metrics(data['expected'],
                                               data['global_significant'])
-    return (F1, type_I_ER, type_II_ER)
+    return (type_I_ER, type_II_ER)
 
 def split_data(data, var):
     vars_data = {}
@@ -320,81 +320,7 @@ def get_stats():
 get_stats()
 
 
-
     
-#%%
-#TODO P_VAL
-
-def p_val_conds_local(method):
-    data_m = data[data['method'] == method]
-    stats_plots_dir = stats_dir + '\\' + method + '\\plots'
-    do_dir(stats_plots_dir)
-    
-    #plot scatter
-    for d in d_vars:
-        plot = sb.lmplot(data=data_m, 
-                    x='crit_p_val', y=d, 
-                    col = 'condition',
-                    scatter = True,
-                    fit_reg=True,
-                    facet_kws=dict(sharex=False, sharey=False))
-        file = stats_plots_dir + '\\cond_' + d + '_scatter.png'
-        plot.savefig(file)
-        plot.fig.clf()
-        
-    #plot violin
-    for d in d_vars:
-        for cond in conditions:
-            data_c = data_m[data_m['condition'] == cond]
-            plot = sb.violinplot(data=data_c, 
-                        x='crit_p_val', y=d)
-            file = stats_plots_dir + '\\' + d + '_' + cond + '_violin.png'
-            plot.get_figure().savefig(file)
-            plot.get_figure().clf()
-            
-    #plot histogram
-    for d in d_vars:
-        for cond in conditions:
-            data_c = data_m[data_m['condition'] == cond]
-            plot = sb.histplot(data=data_c, 
-                        x='crit_p_val', y=d)
-            file = stats_plots_dir + '\\' + d + '_' + cond + '_hist.png'
-            plot.get_figure().savefig(file)
-            plot.get_figure().clf()
-            
-    #plot boxplot
-    for d in d_vars:
-        for cond in conditions:
-            data_c = data_m[data_m['condition'] == cond]
-            plot = sb.boxplot(data=data_c, 
-                        x='crit_p_val', y=d)
-            file = stats_plots_dir + '\\' + d + '_' + cond + '_box.png'
-            plot.get_figure().savefig(file)
-            plot.get_figure().clf()
-    
-
-    
-def p_val_conds_vars_local(method, independent_vars):
-    data_m = data[data['method'] == method]
-    stats_plots_dir = stats_dir + '\\' + method + '\\plots'
-    do_dir(stats_plots_dir)
-    
-    #plot
-    for v in i_vars:
-        for d in d_vars:
-            plot = sb.lmplot(data=data_m, 
-                        x='crit_p_val', y=d, 
-                        col = 'condition',
-                        scatter = True,
-                        fit_reg=True,
-                        facet_kws=dict(sharex=False, sharey=False))
-            file = stats_plots_dir + '\\cond_' + v + '_' + d + '.png'
-            plot.savefig(file)
-            
-
-    
-#hue for highlighting other aspects    
-#row like col for matrix
 
     
 

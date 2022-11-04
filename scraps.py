@@ -514,7 +514,10 @@ def rename_analysed(window_size, density, local, cond, method):
     
     dataframe_file_old = dataset + '\\' + cond + '_' + method + '.csv'
     dataframe_file_new = dataset + '\\' + cond + '_mc_' + method + '.csv'
-    os.rename(dataframe_file_old, dataframe_file_new)
+    try: 
+        os.rename(dataframe_file_old, dataframe_file_new)
+    except:
+        print('no file')
     
     
 
@@ -605,3 +608,24 @@ for amp in amplitudes:
 #         v_plot.get_figure().savefig(file)
 
 # # higher crit_p_val => lower FP (type I) and especially lower FN (type II)
+
+"""
+#edge cases precision
+if FP == 0 and TP == 0: #no cases predicted positives
+    precision = 1
+else:
+    precision = TP/(TP+FP)
+    
+#edge case recall
+#hit rate (doesn't make sense when there are is no positive data)
+if FN == 0 and TP == 0: #no positives in the input data
+    recall = 1
+else:
+    recall = TP/(TP+FN)
+    
+#edge case f1
+if precision == 0 and recall == 0:
+    f1 = 0
+else:
+    f1 = 2*precision*recall/(precision + recall)
+"""

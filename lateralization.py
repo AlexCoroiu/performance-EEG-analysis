@@ -11,8 +11,8 @@ import multiple_comparisons as mc
 import results as res
 import statistics as stats
 import pandas as pd
+import numpy as np
 from ast import literal_eval
-
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -42,6 +42,7 @@ CHANNELS_86_RIGHT = ['Fp2',
 CHANNELS_86_PAIRS = list(zip(CHANNELS_86_LEFT, CHANNELS_86_RIGHT))
 
 LATERALIZATION = 'lateralization'
+conditions = ['baseline', 'vs']
 
 def get_pair(row):
     channel = row['channel']
@@ -63,7 +64,7 @@ def get_lat(row):
     
     if condition == 'vs_right':
         lat = left - right
-    elif condition == 'vs_left':
+    else: #vs_left and baseline
         lat = right - left
         
     return lat
@@ -96,18 +97,17 @@ def prepare_test_df(df, window_size, density, local):
     df = df.drop(columns = ['electrodes'])
 
     #save
-    dataframe_file = dataset + '\\lateralization.csv'
-    df.to_csv(dataframe_file, index = False)
+    for cond in conditions:
+        columns = ['part','time','pair', cond]
+        df_cond = df[columns]
+        dataframe_file = dataset + '\\lat_' + cond + '.csv'
+        df_cond.to_csv(dataframe_file, index = False)
 
 def prepare():
-
     dataset = fm.PREPARATION_DIR 
     fm.do_dir(dataset)
 
     df = pross.load_evo_df()
-
-    #remove baseline
-    df = df[df['condition'] != 'baseline']
         
     #select post stimulus time interval 0 to 500
     df = df[(df['time'] >= c.TEST_INTERVAL_MIN) & 
@@ -115,32 +115,35 @@ def prepare():
 
     #assign pair
     df['pair'] = df.apply(get_pair, axis = 1)
+    
     #remove center
     df = df.dropna(subset = ['pair'])
+    
     #left/right
     df['hemi'] = df.apply(get_hemi, axis = 1)
 
     #pivot accordign to hemi
-    df = df.pivot(index=['part','time', 'condition', 'pair'], 
-                                    columns='hemi', 
-                                    values='value')
+    df = df.pivot(index=['part', 'time', 'condition', 'pair'], 
+                columns= 'hemi', 
+                values= 'value')
     df = df.reset_index() #always has to reset otherwise index column cannot be accessed
 
     #calcualte diff
     df['lateralization'] = df.apply(get_lat, axis = 1)
 
-    #format wide
+    #remove baseline
+    # df = df[df['condition'] != 'baseline'] #keep base in!
+
+    #format accordign to condition
     df = df.pivot(index=['part','time', 'pair'], 
                                     columns='condition', 
                                     values= 'lateralization')
     df = df.reset_index()
 
     #calcualte avg
-    df['lateralization'] = (df['vs_left'] + df['vs_right'])/2
+    df['vs'] = (df['vs_left'] + df['vs_right'])/2
 
-    columns = ['part', 'time', 'pair', 'lateralization']
-    df = df[columns]
-
+    df = df.drop(columns = ['vs_left', 'vs_right'])
 
     #prepare cond dfs
     for w in c.WINDOW_SIZE:
@@ -152,14 +155,19 @@ def load_test_df(window_size, density, local):
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
     dataset = fm.PREPARATION_DIR + '\\' + dir_name
-        
-    dataframe_file = dataset + '\\lateralization.csv'
-    loaded = pd.read_csv(dataframe_file)
     
-    return loaded       
+    loaded = {}
+    
+    for cond in conditions:
+        dataframe_file = dataset + '\\lat_' + cond + '.csv'
+        prepared = pd.read_csv(dataframe_file)
+        
+        loaded[cond] = prepared
+        
+    return loaded
          
 #ANALYZE    
-def test_lateralization(window_size, density, local, correction):         
+def test_lateralization(window_size, density, local, cond, correction):         
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
     dataset = fm.ANALYSED_DIR + '\\' + dir_name
@@ -167,23 +175,25 @@ def test_lateralization(window_size, density, local, correction):
     
     #load prepped data
     data = load_test_df(window_size, density, local) 
+    data_cond = data[cond]
     
-    data = data.rename({'pair': 'channel'}, axis = "columns")
+    data_cond = data_cond.rename({'pair': 'channel'}, axis = "columns")
 
-    results = mc.multiple_comparison(data)
+
+    results = mc.multiple_comparison(data_cond)
     
     if correction == 'bonferroni':
         b_results = mc.bonferroni(results)  
         b_results['significant'] = b_results['bonferroni_reject'] #null hypothesis was rejected
         #save
-        dataframe_file = dataset + '\\lateralization_mc_b.csv'
+        dataframe_file = dataset + '\\lat_' + cond + '_mc_b.csv'
         b_results.to_csv(dataframe_file, index = False)
 
     elif correction == 'window':
         w_results = mc.window(results)
         w_results['significant'] = w_results['window_reject'] #null hypothesis was rejected
         #save
-        dataframe_file = dataset + '\\lateralization_mc_w.csv'
+        dataframe_file = dataset + '\\lat_' + cond + '_mc_w.csv'
         w_results.to_csv(dataframe_file, index = False)
                 
 def test(correction):
@@ -193,7 +203,8 @@ def test(correction):
     for w in c.WINDOW_SIZE:
         for d in c.DENSITY.keys():
             for l in c.LOCAL:
-                test_lateralization(w,d,l,correction)
+                for cond in conditions:
+                    test_lateralization(w,d,l,cond, correction)
                     
 def test_window():
     test('window')
@@ -227,7 +238,8 @@ def true_signal_mc(data):
 #do calcualtions and add to data
 def summary_results_mc(window_size,density,local,cond,method):
 
-    analysed = res.load_analysed(window_size,density,local,cond,method)
+    lat_cond = 'lat_' + cond
+    analysed = res.load_analysed(window_size, density, local, lat_cond, method)
     
     #total tests
     total = len(analysed)
@@ -239,7 +251,6 @@ def summary_results_mc(window_size,density,local,cond,method):
     analysed['expected'] = true_signal_mc(analysed)
     
     (TN_count, FP_count, FN_count, TP_count, 
-     precision, recall, F1,
      type_I_error, type_II_error) = res.get_metrics(analysed['expected'],
                                                 analysed['significant'])
                                           
@@ -250,7 +261,7 @@ def summary_results_mc(window_size,density,local,cond,method):
             cond, method, 
             crit_p_val, total, positives, global_significant,
             TP_count, FP_count, TN_count, FN_count,
-            precision, recall, F1, type_I_error, type_II_error] 
+            type_I_error, type_II_error] 
     
 #multiple comaprisons results for all method params
 def results_mc(method):
@@ -261,8 +272,9 @@ def results_mc(method):
     for w in c.WINDOW_SIZE:
         for d in c.DENSITY.keys():
             for l in c.LOCAL:
-                result = summary_results_mc(w,d,l,'lateralization', method)
-                results.append(result)
+                for cond in conditions:
+                    result = summary_results_mc(w,d,l,cond,method)
+                    results.append(result)
                     
     results_df = pd.DataFrame(results, 
                               columns =['window_size', 'density', 'location', 
@@ -270,10 +282,9 @@ def results_mc(method):
                                         'crit_p_val', 'total', 
                                         'positives', 'global_significant',
                                         'TP', 'FP', 'TN', 'FN',
-                                        'precision', 'recall', 'F1',
                                         'type_I_ER', 'type_II_ER'])
 
-    dataframe_file = dataset + '\\results_lat_' + method + '.csv'
+    dataframe_file = dataset + '\\lat_results_' + method + '.csv'
     results_df.to_csv(dataframe_file, index = False)
     
     return results_df 
@@ -296,9 +307,9 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
     c.set_up(amplitude, noise_filter, band_pass_filtering)
 
     #RUN 
-    # prepare()
-    # test_window()
-    # test_bonferroni()
+    prepare()
+    test_window()
+    test_bonferroni()
     
     res_dfs = []
     res_dfs.append(results_mc_window())
@@ -340,21 +351,20 @@ def run():
                 'crit_p_val', 'total',
                 'positives', 'global_significant',
                 'TP', 'FP', 'TN', 'FN',
-                'precision', 'recall', 'F1',
                 'type_I_ER', 'type_II_ER']
 
     results_df = results_df[columns]
     
     #print(results_df.isnull().sum().sum()) #check for NaN
 
-    dataframe_file = 'results_lat.csv'
+    dataframe_file = 'lat_results.csv'
     results_df.to_csv(dataframe_file, index = False)
 
 
 #STATS
 #get statistics
 def load_final_results():
-    dataframe_file = 'results_lat.csv'
+    dataframe_file = 'lat_results.csv'
     data = pd.read_csv(dataframe_file)
     
     return data
@@ -366,7 +376,7 @@ def get_stats():
     data = load_final_results()
 
     # expected global results
-    data['expected'] = True 
+    data['expected'] = np.where(data['condition'] == 'baseline', False, True) 
     
     methods = data['method'].unique()
 
@@ -374,7 +384,7 @@ def get_stats():
     methods = stats.split_data(data, 'method')
 
     #directories
-    stats_dir = "statistics_lat"
+    stats_dir = "lat_statistics"
     fm.do_dir(stats_dir)
     
     # STATS 
@@ -416,17 +426,14 @@ def get_stats():
             
             #tests
             stats.test_diff_conds_local(stats_i_dir, m_data, m_name, i)
-            
-
+        
     # p_val_local('mc_w')
     # p_val_conds_local('mc_w')
     # p_val_conds_vars_local('mc_w')  
-
-#run()
-get_stats()
     
 #TODO CHECK IF CORRECT
 # - true signal
 # - local/global significance calcualtion
 
-
+run()
+get_stats()
