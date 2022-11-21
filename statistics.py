@@ -194,7 +194,7 @@ def plots_vars_conds_local(stats_i_dir, m_split, m_name, i):
                                  x=i, y=d)
             file = stats_plots_dir + '\\' + d + '_' + c_name + '_violin.png'
             plot.get_figure().savefig(file)
-            plot.get_figure().clf()
+            plot.get_figure().clear()
             
 
 def test_diff_conds_local(stats_i_dir, m_split, m_name, i):

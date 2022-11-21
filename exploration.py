@@ -4,7 +4,7 @@
 # setup
 import mne
 import constants as c
-import simulation as sim
+import file_manager as fm
 import numpy as np
 import pandas as pd
 import seaborn as sb
@@ -13,47 +13,85 @@ import processing
 
 # SIMULATION statistics: amplitude & latency (part + event var)
 
-def sim_var_statistics(gen_vars):
+def sim_var_statistics(data, exp_dir):
     
-    for var, data in gen_vars.items():
-        #population level
-        print(data['var'].describe())
-        
-        #condition level
-        print(data.groupby('condition')['var'].describe())
-        
-        #event level
-        print(data.groupby('time')['var'].describe())
-        
-        #participant level
-        print(data.groupby('part')['var'].describe())
-    
-def sim_var_vizualization(gen_vars):
-    
-    for var, data in gen_vars.items():
-        #density plots condition
-        plot = sb.displot(data, x = 'var', row = 'condition')
-        plt.show()
+    exp_dir = exp_dir + '\\stats'
+    fm.do_dir(exp_dir)
 
-        #violin plots participant
-        plot = sb.violinplot(data = data,
-                      x = 'part', y = 'var')
-        plt.show()
-        
-        #violin plots condition x participant
-        plot = sb.FacetGrid(data, row = 'condition')
-        plot = plot.map(sb.violinplot,
-                 data = data,
-                 x = 'part', y = 'var')
-        plt.show()
-        
-        #violing plots event x participant
+    #population level
+    df = pd.DataFrame(data['var'].describe())
+    dataframe_file = exp_dir + '\\pop_lvl.csv'
+    df.to_csv(dataframe_file)
     
-def explore_sim_variables():
+    #condition level
+    df = pd.DataFrame(data.groupby('condition')['var'].describe())
+    dataframe_file = exp_dir + '\\cond_lvl.csv'
+    df.to_csv(dataframe_file)
+    
+    #event/trial level
+    df = pd.DataFrame(data.groupby('time')['var'].describe())
+    dataframe_file = exp_dir + '\\trial_lvl.csv'
+    df.to_csv(dataframe_file)
+    
+    #participant level
+    df = pd.DataFrame(data.groupby('part')['var'].describe())
+    dataframe_file = exp_dir + '\\part_lvl.csv'
+    df.to_csv(dataframe_file)
+
+    
+def sim_var_vizualization(data, exp_dir):
+    
+    exp_dir = exp_dir + '\\plots'
+    fm.do_dir(exp_dir)
+    
+    #density plots
+    plot = sb.displot(data, x = 'var')
+    
+    file = exp_dir + '\\density.png'
+    fig = plot.figure
+    fig.savefig(file)
+    fig.clear()
+    
+    #density plots condition
+    plot = sb.displot(data, x = 'var', row = 'condition')
+    
+    file = exp_dir + '\\cond_density.png'
+    fig = plot.figure
+    fig.savefig(file)
+    fig.clear()
+
+    #violin plots participant
+    plot = sb.violinplot(data = data, x = 'part', y = 'var')
+    
+    file = exp_dir + '\\violin.png'
+    fig = plot.figure
+    fig.set(figwidth = 16)
+    fig.savefig(file)
+    fig.clear()
+    
+    #violin plots condition x participant
+    plot = sb.FacetGrid(data, row = 'condition')
+    plot = plot.map(sb.violinplot,
+                    data = data,
+                    x = 'part', y = 'var')
+    
+    file = exp_dir + '\\cond_violin.png'
+    fig = plot.figure
+    fig.set(figwidth = 8)
+    fig.savefig(file)
+    fig.clear()
+
+    
+def explore_sim_variables(exp_dir):
     gen_vars = {'amplitude': c.AMP_VARS, 
                 'latency': c.LAT_VARS}
-    sim_var_statistics(gen_vars)
-    sim_var_vizualization(gen_vars)
+    
+    for var, data in gen_vars.items():
+        var_dir = exp_dir + '\\' + var
+        fm.do_dir(var_dir)
+        
+        sim_var_statistics(data, var_dir)
+        sim_var_vizualization(data, var_dir)
 
 #DATAFRAME statistics
 
@@ -82,45 +120,107 @@ def make_topo_sphere(epoched): #digital montage for each participant
 PLOT_TIMES = np.arange(0.08, 0.28, 0.04)
 
 #VIZUALIZE participant level
-def mne_part_level(part, raws, epos, evos):
+def mne_part_level(part, raws, epos, evos, exp_dir):
     #sphere model for topographic representation
-    sphere = make_topo_sphere(epos[part]) #based on 1st part
+    electrode = 'POz'
+    sphere = make_topo_sphere(epos[part])
     
-    raws[part].pick(picks = c.CHANNELS_OCCIPITAL).plot(duration = 4)
+    plot = raws[part].pick(picks = c.CHANNELS_OCCIPITAL).plot(duration = 4)
+    fig = plot.figure
+    file = exp_dir + '\\raw.png'
+    fig.savefig(file)
+    fig.clear()
     
-    epos[part].plot_psd()
-    #epoched.plot_psd_topomap()
+    plot = epos[part].plot(picks = c.CHANNELS_OCCIPITAL, n_epochs = 4)
+    fig = plot.figure
+    file = exp_dir + '\\epo.png'
+    fig.savefig(file)
+    fig.clear()
     
+    plot = epos[part].plot_psd(sphere = sphere)
+    fig = plot.figure
+    file = exp_dir + '\\epo_psd.png'
+    fig.savefig(file)
+    fig.clear()
+    
+    plot = epos[part].plot_psd_topomap(sphere = sphere)
+    fig = plot.figure
+    file = exp_dir + '\\epo_psd_topo.png'
+    fig.savefig(file)
+    fig.clear()
+
     avg_evo_conditions = dict(zip(c.CONDITIONS, evos[part]))
     
     for cond in c.CONDITIONS:
         
+        cond_dir = exp_dir + '\\' + cond
+        fm.do_dir(cond_dir)
+        
         #epoched data
         epochs_cond = epos[part][cond]
         
-        epochs_cond.plot
+        plot = epochs_cond.plot(picks = c.CHANNELS_OCCIPITAL)
+        fig = plot.figure
+        file = cond_dir + '\\epo.png'
+        fig.savefig(file)
+        fig.clear()
     
-        epochs_cond.plot_image(combine='mean')
-    
+        [plot] = epochs_cond.plot_image(combine='mean') 
+        #mean over all channels, can select jsut a specific one as well
+        fig = plot.figure
+        file = cond_dir + '\\epo_mean.png'
+        fig.savefig(file)
+        fig.clear()
+        
+        [plot] = epochs_cond.plot_image(picks = [electrode], combine='mean') 
+        #mean for POz
+        fig = plot.figure
+        file = cond_dir + '\\epo_'  + electrode + '.png'
+        fig.savefig(file)
+        fig.clear()
     
         #evoked data
         evo_cond = avg_evo_conditions[cond]
-        evo_cond.plot_topomap(times = PLOT_TIMES,
-                            ch_type = 'eeg')
         
-        #evoked.plot(gfp = True)
-        evo_cond.plot(picks = ['POz'], gfp=False)
-        evo_cond.plot(picks = ['PO3'], gfp=False)
-        evo_cond.plot(picks = ['PO4'], gfp=False)
+        plot = evo_cond.plot_topomap(times = PLOT_TIMES,
+                              sphere = sphere,
+                              ch_type = 'eeg')
+        fig = plot.figure
+        file = cond_dir + '\\evo_topo.png'
+        fig.savefig(file)
+        fig.clear()
         
+        #evo_cond.plot(gfp = True)
+        plot = evo_cond.plot(picks = [electrode], gfp=False)
+        fig = plot.figure
+        file = cond_dir + '\\evo_' + electrode + '.png'
+        fig.savefig(file)
+        fig.clear()
+        
+    #compare averagee evo 
+    [plot] = mne.viz.plot_compare_evokeds(evos[part],
+                                          sphere = sphere,
+                                          legend='upper left',
+                                          show_sensors='upper right')
     
-    mne.viz.plot_compare_evokeds(evos[part],
-                             legend='upper left', 
-                             show_sensors='upper right')
+    fig = plot.figure
+    file = exp_dir + '\\evo_conds.png'
+    fig.savefig(file)
+    fig.clear()
     
-    epos[part].pick(picks = c.CHANNELS_OCCIPITAL).plot(n_epochs = 4)
+    #compare averagee evo for POz
+    [plot] = mne.viz.plot_compare_evokeds(evos[part], picks = [electrode],
+                                          sphere = sphere,
+                                          legend='upper left',
+                                          show_sensors='upper right')
+    
+    fig = plot.figure
+    file = exp_dir + '\\evo_conds_' + electrode + '.png'
+    fig.savefig(file)
+    fig.clear()
+    
 
-def explore_mne():
+def explore_mne(exp_dir):
     #raws
     raws = processing.load_raws()
     
@@ -130,16 +230,32 @@ def explore_mne():
     #evos
     evos = processing.load_evos()
     
-    mne_part_level(0, raws, epos, evos) #part 1
+    part_nr = 0 #only for one part
+    part_dir = exp_dir + '\\part' + str(part_nr)
+    fm.do_dir(part_dir)
+    
+    mne_part_level(part_nr, raws, epos, evos, part_dir) 
     
 def explore():
-    explore_sim_variables()
-    explore_mne()
+    #directory
+    exp_dir = "exploration"
+    fm.do_dir(exp_dir)
     
+    explore_sim_variables(exp_dir)
+    
+    exp_dir = exp_dir + "\\data"
+    fm.do_dir(exp_dir)
+    
+    #setup dataset
+    amp = (40,20)
+    noise = (0.1,-0.1,0.02)
+    bpf = False
+    fm.set_up(amp, noise, bpf)
+    c.set_up(amp, noise, bpf)
 
+    explore_mne(exp_dir)
+    
 explore()
-    
-    
     
     
     

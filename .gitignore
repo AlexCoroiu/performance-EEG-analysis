@@ -3,6 +3,7 @@ __pycache__/
 fs-avg-fwd.fif
 ss-src.fif
 data_*/
-statistics/
+exploration/
 lat_statistics/
+statistics/
 p_val*/
