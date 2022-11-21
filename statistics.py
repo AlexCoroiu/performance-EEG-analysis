@@ -6,19 +6,16 @@ Created on Mon Jun 27 14:05:18 2022
 """
 
 import pandas as pd
-import os
-import sklearn.metrics
 import seaborn as sb
 import numpy as np
 from results import get_metrics
 from file_manager import do_dir
-import matplotlib.pyplot as plt
 from itertools import repeat
 import scipy
 
 #variables
 simulation_vars = ['amplitude', 'noise', 'band_pass']
-measurement_vars = ['window_size', 'density', 'location']
+measurement_vars = ['window_size', 'time_interval', 'density', 'location']
 independent_vars = simulation_vars + measurement_vars
 dependent_vars = ['type_I_ER','type_II_ER'] 
 stats_vars = ['M', 'SD']
@@ -229,13 +226,21 @@ def test_diff_conds_local(stats_i_dir, m_split, m_name, i):
                     
                     #rint(v_diff)
                     
-                    #TODO test normality beforehand
-                    t_stat, p_val = scipy.stats.ttest_1samp(v_diff, 
-                                                            popmean = 0,
-                                                            alternative = 'two-sided')
-                
+                    #test normality beforehand
+                    t_stat, p_val = scipy.stats.shapiro(v_diff)
                     
-                    reject = p_val < 0.05
+                    normality = p_val < 0.05
+                    
+                    if normality:
+                        #t_test
+                        t_stat, p_val = scipy.stats.ttest_1samp(v_diff, 
+                                                                popmean = 0,
+                                                                alternative = 'two-sided')
+                    
+                        reject = p_val < 0.05
+                    
+                    else:
+                        reject = None
                     
                     d_matrix.append([v1,v2,reject])
                     
@@ -283,11 +288,6 @@ def get_stats():
     compare_methods_conds_local(stats_dir, methods)
 
     #within methods & conditions (vars)
-    
-    #global
-
-    #local
-    
     for m_name, m_data in methods.items():
         
         #create directory
@@ -301,8 +301,10 @@ def get_stats():
             do_dir(stats_i_dir)
         
             mi_data = split_data(m_data, i)
+            
             #global metrics
             compare_vars_conds_global(stats_i_dir, mi_data, m_name, i)
+            
             #local stats
             compare_vars_conds_local(stats_i_dir, mi_data, m_name, i)
             
@@ -311,11 +313,6 @@ def get_stats():
             
             #tests
             test_diff_conds_local(stats_i_dir, m_data, m_name, i)
-            
-
-    # p_val_local('mc_w')
-    # p_val_conds_local('mc_w')
-    # p_val_conds_vars_local('mc_w')  
 
 get_stats()
 

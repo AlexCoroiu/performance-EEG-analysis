@@ -49,8 +49,8 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
     c.set_up(amplitude, noise_filter, band_pass_filtering)
 
     #RUN 
-    #run_data()
-    #run_methods()
+    run_data()
+    run_methods()
     res = run_results()
     
     return res
@@ -81,7 +81,8 @@ def run():
     results_df = pd.concat(results, axis=0)
     
     columns = ['amplitude', 'noise', 'band_pass',
-                'window_size', 'density', 'location', 
+                'window_size', 'time_interval',
+                'density', 'location', 
                 'condition', 'method', 
                 'crit_p_val', 'total',
                 'positives', 'global_significant',

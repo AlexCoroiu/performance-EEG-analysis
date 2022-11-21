@@ -10,21 +10,27 @@ import pandas as pd
 import file_manager as fm
 import processing as pross
 
-def prepare_test_dfs(df, window_size, density, local):
+def prepare_test_dfs(df, window_size, time, density, local):
     window_ms = int(window_size*1000)
-    dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
+    dir_name = 'win' + str(window_ms) + '_time' + str(time) + '_dens' + str(density) + '_loc' + str(local)
     dataset = fm.PREPARATION_DIR + '\\' + dir_name
     fm.do_dir(dataset)
     
     #select time windows
     df = df[df['time'] % window_ms == 0]
+    
+    #select a priori time interval
+    if time:
+        df = df[(df['time'] >= c.TEST_INTERVAL_MIN) & 
+                (df['time'] <= c.TEST_INTERVAL_MAX)]
 
     #select electrodes
     electrodes = c.DENSITY[density]
     
+    #sleect a priori electrode location
     if local:
         electrodes = list(set(electrodes) & set(c.CHANNELS_VISUAL))
-    
+
     df = df[df['channel'].isin(electrodes)] #shallow copy protection
 
     #split by test condition
@@ -36,9 +42,9 @@ def prepare_test_dfs(df, window_size, density, local):
         dataframe_file = dataset + '\\' + cond + '.csv'
         cond_df.to_csv(dataframe_file, index = False)
     
-def load_test_dfs(window_size, density, local):
+def load_test_dfs(window_size, time, density, local):
     window_ms = int(window_size*1000)
-    dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
+    dir_name = 'win' + str(window_ms) + '_time' + str(time) + '_dens' + str(density) + '_loc' + str(local)
     dataset = fm.PREPARATION_DIR + '\\' + dir_name
     
     loaded = {}
@@ -56,10 +62,9 @@ def prepare():
     fm.do_dir(dataset)
     
     df = pross.load_evo_df()
-        
-    #select post stimulus time interval 0 to 500
-    df = df[(df['time'] >= c.TEST_INTERVAL_MIN) & 
-            (df['time'] <= c.TEST_INTERVAL_MAX)]
+    
+    #select post stimulus time 
+    df = df[df['time'] >= 0]
     
     #format wide
     df = df.pivot(index=['part','time','channel'], 
@@ -73,9 +78,10 @@ def prepare():
 
     #prepare cond dfs
     for w in c.WINDOW_SIZE:
-        for d in c.DENSITY.keys():
-            for l in c.LOCAL:
-                prepare_test_dfs(df, w, d, l)
+        for t in c.TIME_INTERVAL:
+            for d in c.DENSITY.keys():
+                for l in c.LOCAL:
+                    prepare_test_dfs(df, w, t, d, l)
         
         
         

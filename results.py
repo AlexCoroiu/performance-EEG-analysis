@@ -13,9 +13,9 @@ import numpy as np
 import sklearn.metrics
 from ast import literal_eval
 
-def load_analysed(window_size, density, local, cond, method):
+def load_analysed(window_size, time, density, local, cond, method):
     window_ms = int(window_size*1000)
-    dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
+    dir_name = 'win' + str(window_ms) + '_time' + str(time) + '_dens' + str(density) + '_loc' + str(local)
     dataset = fm.ANALYSED_DIR + '\\' + dir_name
     
     dataframe_file = dataset + '\\' + cond + '_' + method + '.csv'
@@ -71,9 +71,9 @@ def get_metrics(expected, found):
 #precision, recall and F1 dont make sense to emasure this dataset
 
 #do calcualtions and add to data
-def summary_results_mc(window_size,density,local,cond,method):
+def summary_results_mc(window_size,time,density,local,cond,method):
 
-    analysed = load_analysed(window_size,density,local,cond,method)
+    analysed = load_analysed(window_size,time,density,local,cond,method)
     
     #total tests
     total = len(analysed)
@@ -92,16 +92,16 @@ def summary_results_mc(window_size,density,local,cond,method):
     positives = TP_count + FP_count
     global_significant =  (positives > (total*c.SIGNIFICANCE)) #!!!                         
     
-    return [window_size, density, local, 
+    return [window_size, time, density, local, 
             cond, method, 
             crit_p_val, total, positives, global_significant,
             TP_count, FP_count, TN_count, FN_count,
              type_I_error, type_II_error] 
 
 
-def summary_results_cp(window_size,density,local,cond):
+def summary_results_cp(window_size,time,density,local,cond):
     
-    analysed = load_analysed(window_size,density,local,cond,'cp')
+    analysed = load_analysed(window_size,time,density,local,cond,'cp')
     
     #covnert data_points to list type
     analysed['data_points'] = analysed['data_points'].apply(literal_eval)
@@ -123,7 +123,7 @@ def summary_results_cp(window_size,density,local,cond):
     global_significant = (positives > 0)
                                           
     #save
-    return [window_size, density, local, 
+    return [window_size, time, density, local, 
             cond, 'cp',
             crit_p_val, total,  positives, global_significant,
             TP_count, FP_count, TN_count, FN_count,
@@ -136,14 +136,16 @@ def results_mc(method):
     results = []
     
     for w in c.WINDOW_SIZE:
-        for d in c.DENSITY.keys():
-            for l in c.LOCAL:
-                for cond in c.TEST_CONDITIONS:
-                    result = summary_results_mc(w,d,l,cond,method)
-                    results.append(result)
+        for t in c.TIME_INTERVAL:
+            for d in c.DENSITY.keys():
+                for l in c.LOCAL:
+                    for cond in c.TEST_CONDITIONS:
+                        result = summary_results_mc(w,t,d,l,cond,method)
+                        results.append(result)
                     
     results_df = pd.DataFrame(results, 
-                              columns =['window_size', 'density', 'location', 
+                              columns =['window_size', 'time_interval',
+                                        'density', 'location', 
                                         'condition', 'method', 
                                         'crit_p_val', 'total', 
                                         'positives', 'global_significant',
@@ -169,14 +171,16 @@ def results_cp(): #redundant code but oh well
     results = []
     
     for w in c.WINDOW_SIZE:
-        for d in c.DENSITY.keys():
-            for l in c.LOCAL:
-                for cond in c.TEST_CONDITIONS:
-                    result = summary_results_cp(w,d,l,cond)
-                    results.append(result)
+        for t in c.TIME_INTERVAL:
+            for d in c.DENSITY.keys():
+                for l in c.LOCAL:
+                    for cond in c.TEST_CONDITIONS:
+                        result = summary_results_cp(w,t,d,l,cond)
+                        results.append(result)
                     
     results_df = pd.DataFrame(results, 
-                              columns =['window_size', 'density', 'location', 
+                              columns =['window_size', 'time_interval',
+                                        'density', 'location', 
                                         'condition', 'method', 
                                         'crit_p_val','total',
                                         'positives', 'global_significant',

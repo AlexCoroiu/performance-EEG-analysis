@@ -119,14 +119,14 @@ def cluster_permutations(data):
     return results_df
     
 
-def test_condition(window_size, density, local, cond):
+def test_condition(window_size, time, density, local, cond):
     window_ms = int(window_size*1000)
-    dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
+    dir_name = 'win' + str(window_ms) + '_time' + str(time) + '_dens' + str(density) + '_loc' + str(local)
     dataset = fm.ANALYSED_DIR + '\\' + dir_name
     fm.do_dir(dataset)
     
     #load prepped data
-    data = prep.load_test_dfs(window_size, density, local) 
+    data = prep.load_test_dfs(window_size, time, density, local) 
     #for all test conditions
     data_cond = data[cond]
 
@@ -141,10 +141,11 @@ def test():
     fm.do_dir(dataset)
     
     for w in c.WINDOW_SIZE:
-        for d in c.DENSITY.keys():
-            for l in c.LOCAL:
-                for cond in c.TEST_CONDITIONS:
-                    test_condition(w,d,l,cond)  
+        for t in c.TIME_INTERVAL:
+            for d in c.DENSITY.keys():
+                for l in c.LOCAL:
+                    for cond in c.TEST_CONDITIONS:
+                        test_condition(w,t,d,l,cond)  
 
 # fm.set_up((80,40), (0.2,-0.2,0.04), True) 
 # c.set_up((80,40), (0.2,-0.2,0.04), True)

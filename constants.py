@@ -134,14 +134,14 @@ AMPLITUDE_VAR_DIST = (0,2.5)
 #amplitude +/- 5mV (2*SD)
 
 #latency variables
-LAT_VARS_FILE = 'lat_vars.csv'
+LAT_VARS_FILE = 'latency_vars.csv'
 NEW_VARS = False #should be created only once (x2 test-retest)
 LAT_VARS = fm.do_vars(LAT_VARS_FILE, NEW_VARS, 
                         NR_PARTICIPANTS, EVENTS, EVENT_NAMES, 
                         LATENCY_VAR_PART_DIST, LATENCY_VAR_DIST)
 
 #amplitude variables
-AMP_VARS_FILE = 'amp_vars.csv'
+AMP_VARS_FILE = 'amplitude_vars.csv'
 NEW_VARS = False #should be created only once (x2 test-retest)
 AMP_VARS = fm.do_vars(AMP_VARS_FILE, NEW_VARS, 
                         NR_PARTICIPANTS, EVENTS, EVENT_NAMES, 
@@ -187,22 +187,25 @@ TEST_CONDITIONS = CONDITIONS + [DIFFERENCE] #4 total
 # window size (multiples of 4)
 WINDOW_SIZE = [0.004, 0.012, 0.02] # 4 ms (original), 12 ms, or 20 ms
 
+#tested inerval
+TEST_INTERVAL_MIN = 50
+TEST_INTERVAL_MAX = 300 
+
+#a priori time interval
+TIME_INTERVAL = [True, False] #only aroudn expected ERP, or all psot sitmulus
+
 #electrode density
 DENSITY = {86: CHANNELS_86,
            64: CHANNELS_64,
            31: CHANNELS_31}
 
-#electrode location
+#a priori electrode location
 LOCAL = [True, False] #only visual, or all
 
 # ANALYSIS
 SIGNIFICANCE = 0.05
 
-#tested inerval
-TEST_INTERVAL_MIN = 0
-TEST_INTERVAL_MAX = 500 
-
-#TODO signal interval
+#true signal interval
 SIG_INTERVAL_MIN = 100
 SIG_INTERVAL_MAX = 250
 

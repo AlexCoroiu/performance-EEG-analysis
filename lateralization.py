@@ -75,14 +75,18 @@ def check_pair(row, electrodes):
     return (left in electrodes) and (right in electrodes)
     #check if left & right are in electrodes
     
-def prepare_test_df(df, window_size, density, local):
+def prepare_test_df(df, window_size, time, density, local):
     window_ms = int(window_size*1000)
-    dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
+    dir_name = 'win' + str(window_ms) + '_time' + str(time) + '_dens' + str(density) + '_loc' + str(local)
     dataset = fm.PREPARATION_DIR + '\\' + dir_name
     fm.do_dir(dataset)
     
     #select time windows
     df = df[df['time'] % window_ms == 0]
+    
+    if time:
+        df = df[(df['time'] >= c.TEST_INTERVAL_MIN) & 
+                (df['time'] <= c.TEST_INTERVAL_MAX)]
 
     #select electrodes
     electrodes = c.DENSITY[density]
@@ -110,8 +114,7 @@ def prepare():
     df = pross.load_evo_df()
         
     #select post stimulus time interval 0 to 500
-    df = df[(df['time'] >= c.TEST_INTERVAL_MIN) & 
-            (df['time'] <= c.TEST_INTERVAL_MAX)]
+    df = df[df['time'] >= 0]
 
     #assign pair
     df['pair'] = df.apply(get_pair, axis = 1)
@@ -147,13 +150,14 @@ def prepare():
 
     #prepare cond dfs
     for w in c.WINDOW_SIZE:
-        for d in c.DENSITY.keys():
-            for l in c.LOCAL:
-                prepare_test_df(df, w, d, l)
+        for t in c.TIME_INTERVAL:
+            for d in c.DENSITY.keys():
+                for l in c.LOCAL:
+                    prepare_test_df(df, w, t, d, l)
                             
-def load_test_df(window_size, density, local):
+def load_test_df(window_size, time, density, local):
     window_ms = int(window_size*1000)
-    dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
+    dir_name = 'win' + str(window_ms) + '_time' + str(time) + '_dens' + str(density) + '_loc' + str(local)
     dataset = fm.PREPARATION_DIR + '\\' + dir_name
     
     loaded = {}
@@ -167,51 +171,38 @@ def load_test_df(window_size, density, local):
     return loaded
          
 #ANALYZE    
-def test_lateralization(window_size, density, local, cond, correction):         
+def test_lateralization(window_size, time, density, local, cond):         
     window_ms = int(window_size*1000)
-    dir_name = 'win' + str(window_ms) + '_dens' + str(density) + '_loc' + str(local)
+    dir_name = 'win' + str(window_ms) + '_time' + str(time) + '_dens' + str(density) + '_loc' + str(local)
     dataset = fm.ANALYSED_DIR + '\\' + dir_name
     fm.do_dir(dataset)
     
     #load prepped data
-    data = load_test_df(window_size, density, local) 
+    data = load_test_df(window_size, time, density, local) 
     data_cond = data[cond]
     
     data_cond = data_cond.rename({'pair': 'channel'}, axis = "columns")
 
 
     results = mc.multiple_comparison(data_cond)
-    
-    if correction == 'bonferroni':
-        b_results = mc.bonferroni(results)  
-        b_results['significant'] = b_results['bonferroni_reject'] #null hypothesis was rejected
-        #save
-        dataframe_file = dataset + '\\lat_' + cond + '_mc_b.csv'
-        b_results.to_csv(dataframe_file, index = False)
 
-    elif correction == 'window':
-        w_results = mc.window(results)
-        w_results['significant'] = w_results['window_reject'] #null hypothesis was rejected
-        #save
-        dataframe_file = dataset + '\\lat_' + cond + '_mc_w.csv'
-        w_results.to_csv(dataframe_file, index = False)
+    w_results = mc.window(results)
+    w_results['significant'] = w_results['window_reject'] #null hypothesis was rejected
+    #save
+    dataframe_file = dataset + '\\lat_' + cond + '_mc_w.csv'
+    w_results.to_csv(dataframe_file, index = False)
                 
-def test(correction):
+def test():
     dataset = fm.ANALYSED_DIR
     fm.do_dir(dataset)
     
     for w in c.WINDOW_SIZE:
-        for d in c.DENSITY.keys():
-            for l in c.LOCAL:
-                for cond in conditions:
-                    test_lateralization(w,d,l,cond, correction)
+        for t in c.TIME_INTERVAL:
+            for d in c.DENSITY.keys():
+                for l in c.LOCAL:
+                    for cond in conditions:
+                        test_lateralization(w,t,d,l,cond)
                     
-def test_window():
-    test('window')
-                    
-def test_bonferroni():
-    test('bonferroni')   
-    
 #RESULTS
 def true_pairs(row):
     time = row['time']
@@ -236,10 +227,10 @@ def true_signal_mc(data):
     return expected        
 
 #do calcualtions and add to data
-def summary_results_mc(window_size,density,local,cond,method):
+def summary_results_mc(window_size,time,density,local,cond,method):
 
     lat_cond = 'lat_' + cond
-    analysed = res.load_analysed(window_size, density, local, lat_cond, method)
+    analysed = res.load_analysed(window_size, time, density, local, lat_cond, method)
     
     #total tests
     total = len(analysed)
@@ -257,7 +248,7 @@ def summary_results_mc(window_size,density,local,cond,method):
     positives = TP_count + FP_count
     global_significant =  (positives > (total*c.SIGNIFICANCE)) #!!!                         
     
-    return [window_size, density, local, 
+    return [window_size, time, density, local, 
             cond, method, 
             crit_p_val, total, positives, global_significant,
             TP_count, FP_count, TN_count, FN_count,
@@ -270,14 +261,16 @@ def results_mc(method):
     results = []
     
     for w in c.WINDOW_SIZE:
-        for d in c.DENSITY.keys():
-            for l in c.LOCAL:
-                for cond in conditions:
-                    result = summary_results_mc(w,d,l,cond,method)
-                    results.append(result)
+        for t in c.TIME_INTERVAL:
+            for d in c.DENSITY.keys():
+                for l in c.LOCAL:
+                    for cond in conditions:
+                        result = summary_results_mc(w,t,d,l,cond,method)
+                        results.append(result)
                     
     results_df = pd.DataFrame(results, 
-                              columns =['window_size', 'density', 'location', 
+                              columns =['window_size', 'time_interval',
+                                        'density', 'location', 
                                         'condition', 'method', 
                                         'crit_p_val', 'total', 
                                         'positives', 'global_significant',
@@ -292,9 +285,6 @@ def results_mc(method):
 def results_mc_window():
     return results_mc('mc_w')
     
-def results_mc_bonferroni():
-    return results_mc('mc_b')
-
 #RUN
 
 def run_dataset(amplitude, noise_filter, band_pass_filtering):
@@ -308,12 +298,10 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
 
     #RUN 
     prepare()
-    test_window()
-    test_bonferroni()
+    test()
     
     res_dfs = []
     res_dfs.append(results_mc_window())
-    res_dfs.append(results_mc_bonferroni())
     
     #concat all results
     res = pd.concat(res_dfs, axis=0)
@@ -346,7 +334,8 @@ def run():
     results_df = pd.concat(results_lat, axis=0)
     
     columns = ['amplitude', 'noise', 'band_pass',
-                'window_size', 'density', 'location', 
+                'window_size', 'time_interval',
+                'density', 'location', 
                 'condition', 'method', 
                 'crit_p_val', 'total',
                 'positives', 'global_significant',
@@ -359,7 +348,6 @@ def run():
 
     dataframe_file = 'lat_results.csv'
     results_df.to_csv(dataframe_file, index = False)
-
 
 #STATS
 #get statistics
@@ -426,14 +414,6 @@ def get_stats():
             
             #tests
             stats.test_diff_conds_local(stats_i_dir, m_data, m_name, i)
-        
-    # p_val_local('mc_w')
-    # p_val_conds_local('mc_w')
-    # p_val_conds_vars_local('mc_w')  
-    
-#TODO CHECK IF CORRECT
-# - true signal
-# - local/global significance calcualtion
 
 run()
 get_stats()
