@@ -12,6 +12,7 @@ from results import get_metrics
 from file_manager import do_dir
 from itertools import repeat
 import scipy
+from statsmodels.stats import weightstats
 
 #variables
 simulation_vars = ['amplitude', 'noise', 'band_pass']
@@ -196,6 +197,9 @@ def plots_vars_conds_local(stats_i_dir, m_split, m_name, i):
             plot.get_figure().savefig(file)
             plot.get_figure().clear()
             
+def cohen_d(data, popmean):
+    return abs((data.mean() - popmean)/data.std())
+
 
 def test_diff_conds_local(stats_i_dir, m_split, m_name, i):
     
@@ -224,8 +228,9 @@ def test_diff_conds_local(stats_i_dir, m_split, m_name, i):
                 for v2 in vals:
                     v_diff = d_data[v1] - d_data[v2]
                     
-                    #print(v_diff)
-                    
+                    #print('mean', v_diff.mean(), 'sd', v_diff.std())
+                    #sb.displot(v_diff)
+
                     #test normality beforehand
                     t_stat, p_val = scipy.stats.shapiro(v_diff)
                     
@@ -237,7 +242,13 @@ def test_diff_conds_local(stats_i_dir, m_split, m_name, i):
                                                                 popmean = 0,
                                                                 alternative = 'two-sided')
                         
-                        reject = p_val < 0.05
+                        #print('p_val', p_val)
+                        effect_size = cohen_d(v_diff, 0)
+                        #print('cohen d', effect_size)
+                        reject = (p_val < 0.05) and (effect_size > 0.8)
+                        #print('reject', reject)
+                        
+                    #sample not representative of population => small p val
                     
                     else:
                         reject = None
