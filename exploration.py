@@ -231,7 +231,7 @@ def explore_mne(exp_dir):
     evos = processing.load_evos()
     
     part_nr = 0 #only for one part
-    part_dir = exp_dir + '\\part' + str(part_nr)
+    part_dir = exp_dir + '\\part' + str(part_nr+1)
     fm.do_dir(part_dir)
     
     mne_part_level(part_nr, raws, epos, evos, part_dir) 

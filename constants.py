@@ -184,6 +184,14 @@ BASELINE = (T_MIN, 0) #or None (for baseline correction)
 DIFFERENCE = 'difference'
 TEST_CONDITIONS = CONDITIONS + [DIFFERENCE] #4 total
 
+#electrode density
+DENSITY = {86: CHANNELS_86,
+           64: CHANNELS_64,
+           31: CHANNELS_31}
+
+#a priori electrode location
+LOCAL = [True, False] #only visual, or all
+
 # window size (multiples of 4)
 WINDOW_SIZE = [0.004, 0.012, 0.02] # 4 ms (original), 12 ms, or 20 ms
 
@@ -193,14 +201,6 @@ TEST_INTERVAL_MAX = 300
 
 #a priori time interval
 TIME_INTERVAL = [True, False] #only aroudn expected ERP, or all psot sitmulus
-
-#electrode density
-DENSITY = {86: CHANNELS_86,
-           64: CHANNELS_64,
-           31: CHANNELS_31}
-
-#a priori electrode location
-LOCAL = [True, False] #only visual, or all
 
 # ANALYSIS
 SIGNIFICANCE = 0.05

@@ -49,8 +49,8 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
     c.set_up(amplitude, noise_filter, band_pass_filtering)
 
     #RUN 
-    run_data()
-    run_methods()
+    # run_data()
+    # run_methods()
     res = run_results()
     
     return res

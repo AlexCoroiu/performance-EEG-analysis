@@ -20,6 +20,7 @@ def p_val_conds_local(data, p_dir):
         plot = sb.lmplot(data=data, 
                     x='crit_p_val', y=d, 
                     col = 'condition', #col, hue or row
+                    col_wrap = 2,
                     scatter = True,
                     fit_reg=True,
                     facet_kws=dict(sharex=False, sharey=False))
@@ -65,6 +66,7 @@ def p_val_conds_vars_local(data, p_dir):
                         x='crit_p_val', y=d, 
                         hue = i, #hue or row
                         col = 'condition',
+                        col_wrap = 2,
                         scatter = True,
                         fit_reg=True,
                         facet_kws=dict(sharex=False, sharey=False))
@@ -76,6 +78,7 @@ def p_val_conds_global(data, p_dir):
     plot = sb.lmplot(data=data, 
                 x='crit_p_val', y = 'positives_rate', 
                 col = 'condition', #col, hue or row
+                col_wrap = 2,
                 scatter = True,
                 fit_reg=True,
                 facet_kws=dict(sharex=False, sharey=False))
@@ -91,6 +94,7 @@ def p_val_conds_vars_global(data, p_dir):
                     x='crit_p_val', y = 'positives_rate', 
                     hue = i, #hue or row
                     col = 'condition',
+                    col_wrap = 2,
                     scatter = True,
                     fit_reg=True,
                     facet_kws=dict(sharex=False, sharey=False))
@@ -118,12 +122,12 @@ def determine_p_val():
         p_dir = 'p_val_' + d_name
         do_dir(p_dir)
         
-        p_val_conds_local(data, p_dir)
-        p_val_conds_vars_local(data, p_dir)
-    
         p_val_conds_global(data, p_dir)
         p_val_conds_vars_global(data, p_dir)
-    
+        
+        p_val_conds_local(data, p_dir)
+        p_val_conds_vars_local(data, p_dir)
+
     
 determine_p_val()
 #hue for highlighting other aspects    

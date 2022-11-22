@@ -36,7 +36,7 @@ def global_metrics(data):
     #(TN, FP, FN, TP, type_I_ER, type_II_ER)
     (TN, FP, FN, TP,
      type_I_ER, type_II_ER) = get_metrics(data['expected'],
-                                              data['global_significant'])
+                                          data['global_significant'])
     return (type_I_ER, type_II_ER)
 
 def split_data(data, var):
@@ -126,7 +126,7 @@ def compare_vars_conds_global(stats_i_dir, mi_split, m_name, i):
 
          for c_name, mic_data in mi_conds.items():
          
-             metrics = global_metrics(mi_data)
+             metrics = global_metrics(mic_data)
              mic_metrics = zip(repeat(m_name), repeat(i_name), repeat(c_name),
                              dependent_vars, metrics)
              
@@ -224,7 +224,7 @@ def test_diff_conds_local(stats_i_dir, m_split, m_name, i):
                 for v2 in vals:
                     v_diff = d_data[v1] - d_data[v2]
                     
-                    #rint(v_diff)
+                    #print(v_diff)
                     
                     #test normality beforehand
                     t_stat, p_val = scipy.stats.shapiro(v_diff)
@@ -236,7 +236,7 @@ def test_diff_conds_local(stats_i_dir, m_split, m_name, i):
                         t_stat, p_val = scipy.stats.ttest_1samp(v_diff, 
                                                                 popmean = 0,
                                                                 alternative = 'two-sided')
-                    
+                        
                         reject = p_val < 0.05
                     
                     else:

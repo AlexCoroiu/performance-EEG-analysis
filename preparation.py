@@ -27,7 +27,7 @@ def prepare_test_dfs(df, window_size, time, density, local):
     #select electrodes
     electrodes = c.DENSITY[density]
     
-    #sleect a priori electrode location
+    #select a priori electrode location
     if local:
         electrodes = list(set(electrodes) & set(c.CHANNELS_VISUAL))
 

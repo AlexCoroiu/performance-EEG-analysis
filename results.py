@@ -23,25 +23,35 @@ def load_analysed(window_size, time, density, local, cond, method):
               
     return analysed
 
-def true_signal_mc(data):
-    #actual positives found in predicted values
-    #expected time interval & visual electrodes
-
-    expected = np.where((data['time'] <= c.SIG_INTERVAL_MAX) &
-                        (data['time'] >= c.SIG_INTERVAL_MIN) &
-                        data['channel'].isin(c.CHANNELS_VISUAL),
-                        True, False) #must use bit wise boolean logic operators
+def true_signal_mc(data, cond):
+    #actual positives found in data
+    if cond == "baseline":
+        #no local positives expected
+        expected = [False for _ in data['significant']]
+    
+    else:
+        #expected time interval & visual electrodes
+    
+        expected = np.where((data['time'] <= c.SIG_INTERVAL_MAX) &
+                            (data['time'] >= c.SIG_INTERVAL_MIN) &
+                            data['channel'].isin(c.CHANNELS_VISUAL),
+                            True, False) #must use bit wise boolean logic operators
 
     return expected
 
-def true_signal_cp(data):
+def true_signal_cp(data, cond):
+    
+    if cond == "baseline":
+        #no local positives expected
+        expected = [False for _ in data['significant']]
 
-    #cluster contains at least one point in expected signal
-    expected = [any(((datapoint[0] <= c.SIG_INTERVAL_MAX) and #time
-                     (datapoint[0] >= c.SIG_INTERVAL_MIN) and #time
-                     datapoint[1] in c.CHANNELS_VISUAL) #channel
-                    for datapoint in data_points) 
-                for data_points in data['data_points']]
+    else:
+        #cluster contains at least one point in expected signal
+        expected = [any(((datapoint[0] <= c.SIG_INTERVAL_MAX) and #time
+                         (datapoint[0] >= c.SIG_INTERVAL_MIN) and #time
+                         datapoint[1] in c.CHANNELS_VISUAL) #channel
+                        for datapoint in data_points) 
+                    for data_points in data['data_points']]
     
     return expected
 
@@ -59,7 +69,7 @@ def get_metrics(expected, found):
     else:
         type_I_ER = FP/(FP+TN) #statistical significance (false positive rate)
     
-    #edge case type II error
+    #edge case type II error 
     if FN == 0 and TP == 0: #no positives in input data
         type_II_ER = 0
     else:
@@ -67,7 +77,6 @@ def get_metrics(expected, found):
     
     return (TN, FP, FN, TP, type_I_ER, type_II_ER)
         
-#TODO when T I ER is very low but not 0, F1 is also 0, when it should be much higher
 #precision, recall and F1 dont make sense to emasure this dataset
 
 #do calcualtions and add to data
@@ -82,10 +91,9 @@ def summary_results_mc(window_size,time,density,local,cond,method):
     crit_p_val = analysed['crit_p_val'].values[0]
     
     #CONFUSION MATRIX & METRICS
-    analysed['expected'] = true_signal_mc(analysed)
+    analysed['expected'] = true_signal_mc(analysed,cond)
     
     (TN_count, FP_count, FN_count, TP_count, 
-     
      type_I_error, type_II_error) = get_metrics(analysed['expected'],
                                                 analysed['significant'])
                                           
@@ -113,7 +121,7 @@ def summary_results_cp(window_size,time,density,local,cond):
     crit_p_val = analysed['crit_p_val'].values[0] # == c.SIGNIFICANCE always
     
     #CONFUSION MATRIX LOCAL
-    analysed['expected'] = true_signal_cp(analysed)
+    analysed['expected'] = true_signal_cp(analysed,cond)
     
     (TN_count, FP_count, FN_count, TP_count, 
      type_I_error, type_II_error) = get_metrics(analysed['expected'],

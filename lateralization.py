@@ -216,13 +216,14 @@ def true_pairs(row):
     else:
         return False
 
-def true_signal_mc(data):
-    #actual positives found in predicted values
-    #expected time interval & visual electrodes
+def true_signal_mc(data,cond):
+    if cond == "baseline":
+        #no local positives expected
+        expected = [False for _ in data['significant']]
+    else:
+        data['channel'] = data['channel'].apply(literal_eval)
     
-    data['channel'] = data['channel'].apply(literal_eval)
-
-    expected = data.apply(true_pairs, axis = 1)
+        expected = data.apply(true_pairs, axis = 1)
 
     return expected        
 
@@ -239,7 +240,7 @@ def summary_results_mc(window_size,time,density,local,cond,method):
     crit_p_val = analysed['crit_p_val'].values[0]
     
     #CONFUSION MATRIX & METRICS
-    analysed['expected'] = true_signal_mc(analysed)
+    analysed['expected'] = true_signal_mc(analysed, cond)
     
     (TN_count, FP_count, FN_count, TP_count, 
      type_I_error, type_II_error) = res.get_metrics(analysed['expected'],
@@ -415,5 +416,5 @@ def get_stats():
             #tests
             stats.test_diff_conds_local(stats_i_dir, m_data, m_name, i)
 
-run()
+#run()
 get_stats()
