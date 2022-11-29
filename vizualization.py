@@ -1,15 +1,28 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Nov 29 20:31:01 2022
+
+@author: Alexandra
+"""
+
 import numpy as np
 import mne
 import constants as c
 import file_manager as fm
 import matplotlib.pyplot as plt
+import simulation as sim
 
 
 #SIMULATION FUNCTIONS
-def simulate_wave(times, latency, duration, f_band):
+def simulate_wave(times, latency, duration, f_band, viz_dir):
     time_latency = times - latency
     sinusoid = np.sin(2 * np.pi * f_band * time_latency)
     #time latency has to be used here for the actual time delay
+    plt.plot(times, sinusoid)
+    file = viz_dir + '\\sinusoid.png'
+    plt.savefig(file)
+    plt.clf()
+    
     var = 0.2 * duration #width of the gaussian function 
     sd = var ** 2
     shift = var/4
@@ -23,46 +36,18 @@ def simulate_wave(times, latency, duration, f_band):
     #if duration bigger than latency than you get a shift too much to the right
     
     #!position of the gf compared to the sinusoid
-
-    wave = 1e-10 * sinusoid * gf
-    return wave
-
-def simulate_base(event, src_sim):
-    waveform = simulate_wave(c.TIMES, c.BASE_LATENCY, 
-                             c.BASE_DURATION, c.F_BAND)
-
-    src_sim.add_data(c.BASE_LABEL,
-                     c.BASE_AMPLITUDE*waveform,
-                     event)
+    plt.plot(times,gf)
+    file = viz_dir + '\\gaussian.png'
+    plt.savefig(file)
+    plt.clf()
     
-def simulate_activation(cond, event, src_sim, latency_var, amplitude_var):
-    for hemi in range(2):
-        region = c.ACTIVATIONS[cond][hemi][0]
-        label = c.VISUAL_LABELS[region]
-        
-        #latency
-        stimuli_side = cond.split('_')[1][0]
-        hemi_side = label.hemi[0]
-        
-        hemi_latency = c.LATENCY + latency_var
-        
-        if stimuli_side == hemi_side: #ipsilateral            
-            hemi_latency = hemi_latency + c.IPSILATERAL_DELAY
+    wave = 1e-10 * sinusoid * gf
+    plt.plot(times, wave)
+    file = viz_dir + '\\wave.png'
+    plt.savefig(file)
+    plt.clf()
 
-        #simualte wave
-        waveform = simulate_wave(c.TIMES, hemi_latency, c.DURATION, c.F_BAND)
-            
-        #amplitude
-        hemi_amplitude = c.ACTIVATIONS[cond][hemi][1] + amplitude_var
-        
-        #add wave
-        src_sim.add_data(label,
-                         hemi_amplitude * waveform,
-                         event)
-        
-        #print(stimuli_side, hemi_side, hemi_latency, hemi_amplitude)    
-
-def simulate_data(part_nr):
+def simulate_data(part_nr, viz_dir):
     
     #SIGNAL
     
@@ -75,7 +60,7 @@ def simulate_data(part_nr):
         event_id = event[2]
         condition = c.EVENT_NAMES[event_id]
         if condition == 'baseline':
-            simulate_base([event], src_sim)
+            sim.simulate_base([event], src_sim)
         else:
             #signal vairables
             
@@ -91,41 +76,53 @@ def simulate_data(part_nr):
                                            'var'].iloc[0]
         
             
-            simulate_activation(condition, [event], src_sim, 
+            sim.simulate_activation(condition, [event], src_sim, 
                                 latency_var, amplitude_var)
     
     #add data
     raw_sim = mne.simulation.simulate_raw(c.INFO, 
                                           src_sim, 
                                           forward=c.FWD)
-
+    
+    raw_sim.pick(c.CHANNELS_VISUAL)
+    
+    plot = raw_sim.plot(duration = 1.5, start = 0.5)
+    fig = plot.figure
+    file = viz_dir + '\\signal.png'
+    fig.savefig(file)
+    fig.clear()
     
     #add noise
     mne.simulation.add_noise(raw_sim, c.NOISE_COV,
                               iir_filter = c.NOISE_FILTER) 
     #random_state: default, different every time
     
+    plot = raw_sim.plot(duration = 1.5, start = 0.5)
+    fig = plot.figure
+    file = viz_dir + '\\data.png'
+    fig.savefig(file)
+    fig.clear()
 
-    return raw_sim
 
-def simulate_raws():
-    dataset = fm.RAWS_DIR
-    fm.do_dir(dataset)
-    
-    for p in range(c.NR_PARTICIPANTS):
-        part_nr = p + 1
-        part = "part" + str(part_nr)
-        raw = simulate_data(part_nr)
-        raw_file = dataset + '\\' + part + '_eeg.fif'
-        raw.save(raw_file, overwrite = True)
+#vizualize       
 
-#DATA SIMULATE    
-def simulate():
-    dataset = fm.SIMULATION_DIR
-    fm.do_dir(dataset)
+def vizualize():
+    #directory
+    viz_dir = "vizualization"
+    fm.do_dir(viz_dir)
     
     #simulation
-    simulate_raws()
+    simulate_wave(c.TIMES, 0.175, 0.2, 10, viz_dir)
+    
+    #setup dataset
+    amp = (40,20)
+    noise = (0.1,-0.1,0.02)
+    bpf = False
+    fm.set_up(amp, noise, bpf)
+    c.set_up(amp, noise, bpf)
+    
+    #data
+    simulate_data(1, viz_dir)
     
 
-    
+vizualize()
