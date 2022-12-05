@@ -103,7 +103,6 @@ def simulate_data(part_nr, viz_dir):
     fig.savefig(file)
     fig.clear()
 
-
 #vizualize       
 
 def vizualize():
@@ -115,7 +114,7 @@ def vizualize():
     simulate_wave(c.TIMES, 0.175, 0.2, 10, viz_dir)
     
     #setup dataset
-    amp = (40,20)
+    amp = (60,20)
     noise = (0.1,-0.1,0.02)
     bpf = False
     fm.set_up(amp, noise, bpf)

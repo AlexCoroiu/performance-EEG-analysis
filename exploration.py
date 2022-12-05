@@ -247,7 +247,7 @@ def explore():
     fm.do_dir(exp_dir)
     
     #setup dataset
-    amp = (40,20)
+    amp = (60,20)
     noise = (0.1,-0.1,0.02)
     bpf = False
     fm.set_up(amp, noise, bpf)

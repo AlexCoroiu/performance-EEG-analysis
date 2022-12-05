@@ -53,8 +53,8 @@ def bonferroni(results):
     return results
     
 
-def crit_p_correction(results, nr_windows, nr_electrodes):
-    crit_p = math.sqrt(c.SIGNIFICANCE/((nr_windows-1)*nr_electrodes))
+def crit_p_correction(results):
+    crit_p = math.sqrt(c.SIGNIFICANCE/(len(results)))
     results['crit_p_val'] = crit_p #save crit p value
     
     reject = [ p < crit_p for p in results['p_val']]
@@ -64,19 +64,14 @@ def crit_p_correction(results, nr_windows, nr_electrodes):
 
 
 def window(results):
-    windows = results['time'].unique()
-    nr_windows = len(windows)
-    electrodes = results['channel'].unique()
-    nr_electrodes = len(electrodes)
-    
-    # print('Nr. windows', nr_windows)
-    # print('Nr. electrodes', nr_electrodes)
-    
     #crit p correction
-    results = crit_p_correction(results, nr_windows, nr_electrodes)
+    results = crit_p_correction(results)
     
     #window correction
     
+    windows = results['time'].unique()
+    electrodes = results['channel'].unique()
+
     #create window x electrode matrix
     matrix = results.pivot(index = 'time',
                             columns = 'channel',
@@ -85,6 +80,7 @@ def window(results):
     
     window_matrix = matrix.copy(deep = True)
 
+    nr_windows = len(windows)
     last_window = nr_windows-1
     
     #false if no true neighbour
