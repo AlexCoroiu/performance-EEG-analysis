@@ -416,5 +416,5 @@ def get_stats():
             #tests
             stats.test_diff_conds_local(stats_i_dir, m_data, m_name, i)
 
-run()
+#run()
 get_stats()

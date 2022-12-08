@@ -7,7 +7,8 @@ Created on Thu Nov  3 15:42:00 2022
 import pandas as pd
 from file_manager import do_dir
 import seaborn as sb
-
+import numpy as np
+import matplotlib.pyplot as plt
 #variables
 processing_vars = ['window_size', 'time_interval', 'density', 'location']
 dependent_vars = ['type_I_ER','type_II_ER'] 
@@ -104,13 +105,34 @@ def p_val_conds_vars_global(data, p_dir):
 
 
 def p_val_tests(data, p_dir):
-    plot = sb.lmplot(data=data, 
-                x='total', y = 'crit_p_val', 
-                scatter = True,
-                fit_reg = False)
+    plot = sb.relplot(data=data, 
+                x='total', y = 'crit_p_val')
     file = p_dir + '\\p_val.png'
+    
+    min_tests = data['total'].min()
+    max_tests = data['total'].max()
+    
+    print(min_tests,max_tests)
+
+    x = np.linspace(min_tests,max_tests,max_tests)
+    y = 2*np.sqrt(0.05/x)
+    plt.plot(x,y)
+    
+    
     plot.savefig(file)
     plot.fig.clf()
+    
+def total_tests(data,p_dir):
+    plot = sb.lmplot(data=data, 
+                x='total', y = 'positives_rate', 
+                col = 'condition',
+                col_wrap = 2,
+                scatter = True,
+                fit_reg=True,
+                facet_kws=dict(sharex=True, sharey=True))
+    plot.refline(y = 0.05)
+    file = p_dir + '\\total_tests.png'
+    plot.savefig(file)
     
 
 def determine_p_val():
@@ -125,14 +147,16 @@ def determine_p_val():
         p_dir = 'p_val_' + d_name
         do_dir(p_dir)
         
-        #asses p val calcualtion
-        p_val_tests(data,p_dir)
-        
         data = data[data['method'] == 'mc_w']
         
+        #asses p val calcualtion
+        p_val_tests(data,p_dir)
+    
         # expected global results
         #data['expected'] = np.where(data['condition'] == 'baseline', False, True) 
         data['positives_rate'] = data['positives']/data['total']
+    
+        total_tests(data,p_dir)
     
         p_val_conds_global(data, p_dir)
         p_val_conds_vars_global(data, p_dir)
