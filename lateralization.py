@@ -184,6 +184,7 @@ def test_lateralization(window_size, time, density, local, cond):
     data_cond = data_cond.rename({'pair': 'channel'}, axis = "columns")
 
 
+    #mc
     results = mc.multiple_comparison(data_cond)
 
     w_results = mc.window(results)
@@ -247,7 +248,8 @@ def summary_results_mc(window_size,time,density,local,cond,method):
                                                 analysed['significant'])
                                           
     positives = TP_count + FP_count
-    global_significant =  (positives > (total*c.SIGNIFICANCE)) #!!!                         
+    global_significant = (positives > 0) #any true positive test
+    # global_significant =  (positives > (total*c.SIGNIFICANCE)) #5% true positive tests                      
     
     return [window_size, time, density, local, 
             cond, method, 
@@ -298,8 +300,8 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
     c.set_up(amplitude, noise_filter, band_pass_filtering)
 
     #RUN 
-    prepare()
-    test()
+    #prepare()
+    #test()
     
     res_dfs = []
     res_dfs.append(results_mc_window())

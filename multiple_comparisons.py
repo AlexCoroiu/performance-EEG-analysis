@@ -54,7 +54,10 @@ def bonferroni(results):
     
 
 def crit_p_correction(results):
-    crit_p = math.sqrt(c.SIGNIFICANCE/(len(results)))
+    windows = results['time'].unique()
+    electrodes = results['channel'].unique()
+    
+    crit_p = math.sqrt(c.SIGNIFICANCE/((len(windows)-1)*len(electrodes))) #!!!
     results['crit_p_val'] = crit_p #save crit p value
     
     reject = [ p < crit_p for p in results['p_val']]

@@ -27,7 +27,7 @@ def run_methods():
     multiple_comparisons.test_window()
     # multiple_comparisons.test_bonferroni()
     # cluster_permutations.test()
-        
+
 def run_results():
     res_dfs = []
     res_dfs.append(results.results_mc_window())
@@ -55,7 +55,7 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
     
     return res
 
-#run_dataset((60,30), (0.1,-0.1,0.02), True)
+# run_dataset((60,30), (0.1,-0.1,0.02), True)
 
 #RUN ALL DATASETS
     
