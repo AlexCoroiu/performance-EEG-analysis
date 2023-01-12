@@ -24,8 +24,8 @@ def load_analysed(window_size, time, density, local, cond, method):
     return analysed
 
 def true_signal_mc(data, cond):
-    #actual positives found in data
-    if cond == "baseline":
+    #actual positive data units found in data
+    if "baseline" in cond:
         #no local positives expected
         expected = [False for _ in data['significant']]
     
@@ -41,8 +41,8 @@ def true_signal_mc(data, cond):
 
 def true_signal_cp(data, cond):
     
-    if cond == "baseline":
-        #no local positives expected
+    if "baseline" in cond:
+        #no local positives expected for any data unit
         expected = [False for _ in data['significant']]
 
     else:
@@ -50,13 +50,14 @@ def true_signal_cp(data, cond):
         expected = [any(((datapoint[0] <= c.SIG_INTERVAL_MAX) and #time
                          (datapoint[0] >= c.SIG_INTERVAL_MIN) and #time
                          datapoint[1] in c.CHANNELS_VISUAL) #channel
-                        for datapoint in data_points) 
-                    for data_points in data['data_points']]
+                        for datapoint in cluster_dps) 
+                    for cluster_dps in data['data_points']]
     
     return expected
 
 def get_metrics(expected, found):
-    #confusion matrix
+
+    #confusion matrix    
     confusion_matrix = sklearn.metrics.confusion_matrix(expected,
                                                         found, 
                                                         labels = [False, True])
@@ -98,8 +99,8 @@ def summary_results_mc(window_size,time,density,local,cond,method):
                                                 analysed['significant'])
                                           
     positives = TP_count + FP_count
-    global_significant = (positives > 0) #any true positive test
-    # global_significant =  (positives > (total*c.SIGNIFICANCE)) #5% true positive tests                      
+    # global_significant = (positives > 0) #any true positive test
+    global_significant =  (positives > (total*c.SIGNIFICANCE)) #5% true positive tests                      
     
     return [window_size, time, density, local, 
             cond, method, 
@@ -115,28 +116,38 @@ def summary_results_cp(window_size,time,density,local,cond):
     #covnert data_points to list type
     analysed['data_points'] = analysed['data_points'].apply(literal_eval)
     
+    #crit_p
+    crit_p_val = c.SIGNIFICANCE
+    
     #total clusters
     total = len(analysed)
-    
-    #crit_p
-    crit_p_val = analysed['crit_p_val'].values[0] # == c.SIGNIFICANCE always
-    
-    #CONFUSION MATRIX LOCAL
-    analysed['expected'] = true_signal_cp(analysed,cond)
-    
-    (TN_count, FP_count, FN_count, TP_count, 
-     type_I_error, type_II_error) = get_metrics(analysed['expected'],
-                                          analysed['significant'])
-    
-    positives = TP_count + FP_count
-    global_significant = (positives > 0) #any positive cluster
-                                          
-    #save
-    return [window_size, time, density, local, 
-            cond, 'cp',
-            crit_p_val, total,  positives, global_significant,
-            TP_count, FP_count, TN_count, FN_count,
-             type_I_error, type_II_error ] 
+        
+    #what if there are no clusters identified
+    if total > 0:
+        #CONFUSION MATRIX LOCAL
+        analysed['expected'] = true_signal_cp(analysed,cond)
+        
+        (TN_count, FP_count, FN_count, TP_count, 
+         type_I_error, type_II_error) = get_metrics(analysed['expected'],
+                                              analysed['significant'])
+        
+        positives = TP_count + FP_count
+        global_significant = (positives > 0) #any positive cluster
+                                              
+        #save
+        return [window_size, time, density, local, 
+                cond, 'cp',
+                crit_p_val, total, positives, global_significant,
+                TP_count, FP_count, TN_count, FN_count,
+                type_I_error, type_II_error] 
+    else:
+        return [window_size, time, density, local, 
+                cond, 'cp',
+                crit_p_val, total, 0, False,
+                0, 0, 0, 0,
+                0, 0] 
+
+        
     
 #multiple comaprisons results for all method params
 def results_mc(method):
@@ -149,6 +160,7 @@ def results_mc(method):
             for d in c.DENSITY.keys():
                 for l in c.LOCAL:
                     for cond in c.TEST_CONDITIONS:
+                        print('...RESULTS MC',w,t,d,l,cond,method)
                         result = summary_results_mc(w,t,d,l,cond,method)
                         results.append(result)
                     
@@ -173,7 +185,7 @@ def results_mc_bonferroni():
     return results_mc('mc_b')
 
     
-#cluster permutations resutls
+#cluster permutations results
 def results_cp(): #redundant code but oh well
     dataset = fm.DATA_DIR
     
@@ -184,6 +196,7 @@ def results_cp(): #redundant code but oh well
             for d in c.DENSITY.keys():
                 for l in c.LOCAL:
                     for cond in c.TEST_CONDITIONS:
+                        print('...RESULTS CP',w,t,d,l,cond)
                         result = summary_results_cp(w,t,d,l,cond)
                         results.append(result)
                     

@@ -20,12 +20,12 @@ import file_manager as fm
 #default treshold corresponding to 0.05 p-value
 
 def multiple_comparison(data):
-    print('Data\n', data)
+    #print('Data\n', data)
     #reshape data into (time x channel) on participant
     #format wide
     data = data.pivot(index=['time','channel'], 
                       columns='part')
-    print('Data Pivoted\n', data)
+    #print('Data Pivoted\n', data)
     
     #ttest
     t_stats, p_vals = scipy.stats.ttest_1samp(data, 
@@ -38,7 +38,7 @@ def multiple_comparison(data):
     data = data.droplevel('part', axis = 1)
     results = data[['p_val']]
     results = results.reset_index()
-    print('Results Indexed\n',results)
+    #print('Results Indexed\n',results)
     return results
 
     
@@ -106,13 +106,13 @@ def window(results):
     window_results = window_matrix.melt(ignore_index = False,
                                          value_name = 'window_reject')
     window_results = window_results.reset_index()
-    print('Window Results Melted and Indexed\n', window_results)
+    #print('Window Results Melted and Indexed\n', window_results)
     
     #add as column to results
     results = pd.merge(results, window_results, how = 'inner',
                        left_on = ['time', 'channel'],
                        right_on = ['time', 'channel'])
-    print('Results Merged\n', results)
+    #print('Results Merged\n', results)
 
     return results
 
@@ -151,6 +151,7 @@ def test(correction):
             for d in c.DENSITY.keys():
                 for l in c.LOCAL:
                     for cond in c.TEST_CONDITIONS:
+                        print('...TESTING MC',w,t,d,l,cond)
                         test_condition(w,t,d,l,cond,correction)
                     
 def test_window():

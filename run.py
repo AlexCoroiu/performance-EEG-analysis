@@ -47,6 +47,8 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
     
     #constants  
     c.set_up(amplitude, noise_filter, band_pass_filtering)
+    
+    print('...RUNNING', amplitude, noise_filter, band_pass_filtering)
 
     #RUN 
     # run_data()

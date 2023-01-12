@@ -145,6 +145,7 @@ def test():
             for d in c.DENSITY.keys():
                 for l in c.LOCAL:
                     for cond in c.TEST_CONDITIONS:
+                        print('...TESTING CP',w,t,d,l,cond)
                         test_condition(w,t,d,l,cond)  
 
 # fm.set_up((80,40), (0.2,-0.2,0.04), True) 

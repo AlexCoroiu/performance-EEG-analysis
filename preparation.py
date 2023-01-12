@@ -81,6 +81,7 @@ def prepare():
         for t in c.TIME_INTERVAL:
             for d in c.DENSITY.keys():
                 for l in c.LOCAL:
+                    print('...PREPARING', w, t, d, l)
                     prepare_test_dfs(df, w, t, d, l)
         
         

@@ -112,7 +112,7 @@ def p_val_tests(data, p_dir):
     min_tests = data['total'].min()
     max_tests = data['total'].max()
     
-    print(min_tests,max_tests)
+    #print(min_tests,max_tests)
 
     x = np.linspace(min_tests,max_tests,max_tests)
     y = 2*np.sqrt(0.05/x)

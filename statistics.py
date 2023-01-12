@@ -35,6 +35,7 @@ def local_stats(data, var):
 
 def global_metrics(data):
     #(TN, FP, FN, TP, type_I_ER, type_II_ER)
+    
     (TN, FP, FN, TP,
      type_I_ER, type_II_ER) = get_metrics(data['expected'],
                                           data['global_significant'])
@@ -56,6 +57,7 @@ def split_data(data, var):
 
 #global methods per condition
 def compare_methods_conds_global(stats_dir, methods):
+        
     methods_metrics = []
     
     for m_name, m_data in methods.items():
@@ -63,6 +65,7 @@ def compare_methods_conds_global(stats_dir, methods):
         m_conds = split_data(m_data, 'condition')
 
         for c_name, mc_data in m_conds.items():
+            
             metrics = global_metrics(mc_data)
             mc_metrics = zip(repeat(m_name), repeat(c_name), 
                             dependent_vars, metrics)
@@ -325,7 +328,9 @@ def get_stats():
             #tests
             test_diff_conds_local(stats_i_dir, m_data, m_name, i)
 
-get_stats()
+
+#make sure it's commented out before running lat statistics
+#get_stats()
 
 
     

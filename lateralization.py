@@ -8,6 +8,7 @@ import file_manager as fm
 import constants as c
 import processing as pross
 import multiple_comparisons as mc
+import cluster_permutations as cp
 import results as res
 import statistics as stats
 import pandas as pd
@@ -153,6 +154,7 @@ def prepare():
         for t in c.TIME_INTERVAL:
             for d in c.DENSITY.keys():
                 for l in c.LOCAL:
+                    print('...PREPARING',w, t, d, l )
                     prepare_test_df(df, w, t, d, l)
                             
 def load_test_df(window_size, time, density, local):
@@ -181,17 +183,30 @@ def test_lateralization(window_size, time, density, local, cond):
     data = load_test_df(window_size, time, density, local) 
     data_cond = data[cond]
     
+    #renamed from pair
     data_cond = data_cond.rename({'pair': 'channel'}, axis = "columns")
+    
+    #extract electrodes from one side
+    #(C3,C4) --> C4 (take right hemi as per formula)
+    pairs = data_cond['channel'].apply(literal_eval)
+    electrodes = [pair[1] for pair in pairs]
+    data_cond['channel'] = electrodes
 
 
     #mc
-    results = mc.multiple_comparison(data_cond)
-
-    w_results = mc.window(results)
+    mc_results = mc.multiple_comparison(data_cond)
+    w_results = mc.window(mc_results)
     w_results['significant'] = w_results['window_reject'] #null hypothesis was rejected
     #save
     dataframe_file = dataset + '\\lat_' + cond + '_mc_w.csv'
     w_results.to_csv(dataframe_file, index = False)
+    
+    
+    #cp
+    cp_results = cp.cluster_permutations(data_cond)  
+    #save
+    dataframe_file = dataset + '\\lat_' + cond + '_cp.csv'
+    cp_results.to_csv(dataframe_file, index = False)
                 
 def test():
     dataset = fm.ANALYSED_DIR
@@ -202,61 +217,11 @@ def test():
             for d in c.DENSITY.keys():
                 for l in c.LOCAL:
                     for cond in conditions:
+                        print('...TESTING',w,t,d,l,cond)
                         test_lateralization(w,t,d,l,cond)
                     
 #RESULTS
-def true_pairs(row):
-    time = row['time']
-    left_ch = row['channel'][0]
-    right_ch = row['channel'][1]
-    if (( time <= c.SIG_INTERVAL_MAX) & 
-        ( time >= c.SIG_INTERVAL_MIN) &
-         (left_ch in (c.CHANNELS_VISUAL)) &
-         (right_ch in (c.CHANNELS_VISUAL))):
-        return True
-    else:
-        return False
 
-def true_signal_mc(data,cond):
-    if cond == "baseline":
-        #no local positives expected
-        expected = [False for _ in data['significant']]
-    else:
-        data['channel'] = data['channel'].apply(literal_eval)
-    
-        expected = data.apply(true_pairs, axis = 1)
-
-    return expected        
-
-#do calcualtions and add to data
-def summary_results_mc(window_size,time,density,local,cond,method):
-
-    lat_cond = 'lat_' + cond
-    analysed = res.load_analysed(window_size, time, density, local, lat_cond, method)
-    
-    #total tests
-    total = len(analysed)
-    
-    #crit_p
-    crit_p_val = analysed['crit_p_val'].values[0]
-    
-    #CONFUSION MATRIX & METRICS
-    analysed['expected'] = true_signal_mc(analysed, cond)
-    
-    (TN_count, FP_count, FN_count, TP_count, 
-     type_I_error, type_II_error) = res.get_metrics(analysed['expected'],
-                                                analysed['significant'])
-                                          
-    positives = TP_count + FP_count
-    global_significant = (positives > 0) #any true positive test
-    # global_significant =  (positives > (total*c.SIGNIFICANCE)) #5% true positive tests                      
-    
-    return [window_size, time, density, local, 
-            cond, method, 
-            crit_p_val, total, positives, global_significant,
-            TP_count, FP_count, TN_count, FN_count,
-            type_I_error, type_II_error] 
-    
 #multiple comaprisons results for all method params
 def results_mc(method):
     dataset = fm.DATA_DIR
@@ -268,7 +233,9 @@ def results_mc(method):
             for d in c.DENSITY.keys():
                 for l in c.LOCAL:
                     for cond in conditions:
-                        result = summary_results_mc(w,t,d,l,cond,method)
+                        lat_cond = 'lat_' + cond
+                        print('...RESULTS MC',w,t,d,l,lat_cond)
+                        result = res.summary_results_mc(w,t,d,l,lat_cond,method)
                         results.append(result)
                     
     results_df = pd.DataFrame(results, 
@@ -284,9 +251,40 @@ def results_mc(method):
     results_df.to_csv(dataframe_file, index = False)
     
     return results_df 
-    
+
 def results_mc_window():
     return results_mc('mc_w')
+
+
+#cluster permutation results
+def results_cp(): #redundant code but oh well
+    dataset = fm.DATA_DIR
+    
+    results = []
+    
+    for w in c.WINDOW_SIZE:
+        for t in c.TIME_INTERVAL:
+            for d in c.DENSITY.keys():
+                for l in c.LOCAL:
+                    for cond in conditions:
+                        lat_cond = 'lat_' + cond
+                        print('...RESULTS CP',w,t,d,l,lat_cond)
+                        result = res.summary_results_cp(w,t,d,l,lat_cond)
+                        results.append(result)
+                    
+    results_df = pd.DataFrame(results, 
+                              columns =['window_size', 'time_interval',
+                                        'density', 'location', 
+                                        'condition', 'method', 
+                                        'crit_p_val','total',
+                                        'positives', 'global_significant',
+                                        'TP', 'FP', 'TN', 'FN',
+                                        'type_I_ER', 'type_II_ER'])
+    
+    dataframe_file = dataset + '\\lat_results_cp.csv'
+    results_df.to_csv(dataframe_file, index = False)
+    
+    return results_df 
     
 #RUN
 
@@ -299,19 +297,22 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
     #constants  
     c.set_up(amplitude, noise_filter, band_pass_filtering)
 
+    print('...RUNNING',amplitude, noise_filter, band_pass_filtering)
+    
     #RUN 
     #prepare()
     #test()
     
     res_dfs = []
     res_dfs.append(results_mc_window())
+    res_dfs.append(results_cp())
     
     #concat all results
     res = pd.concat(res_dfs, axis=0)
     
     return res
 
-#run_dataset((60,30), (0.1,-0.1,0.02), True)
+# run_dataset((60,30), (0.1,-0.1,0.02), True)
 
 #RUN ALL DATASETS
     
@@ -358,6 +359,13 @@ def load_final_results():
     dataframe_file = 'lat_results.csv'
     data = pd.read_csv(dataframe_file)
     
+    #remove tests where no clusters were identified (and print)
+    #print('NO CLUSTERS FORMED', (data[data['total'] == 0]).shape[0])
+    
+    #print(data.shape[0])
+    data = data[data['total'] > 0]
+    #print(data.shape[0])
+    
     return data
 
 def get_stats(): 
@@ -367,9 +375,11 @@ def get_stats():
     data = load_final_results()
 
     # expected global results
-    data['expected'] = np.where(data['condition'] == 'baseline', False, True) 
+    data['expected'] = np.where(data['condition'] == 'lat_baseline', False, True) 
     
     methods = data['method'].unique()
+    
+    print(methods, data['condition'].unique())
 
     #splitting data
     methods = stats.split_data(data, 'method')
@@ -418,5 +428,5 @@ def get_stats():
             #tests
             stats.test_diff_conds_local(stats_i_dir, m_data, m_name, i)
 
-#run()
+run()
 get_stats()
