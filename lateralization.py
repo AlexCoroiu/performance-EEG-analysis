@@ -195,18 +195,27 @@ def test_lateralization(window_size, time, density, local, cond):
 
     #mc
     mc_results = mc.multiple_comparison(data_cond)
+    
+    #w
     w_results = mc.window(mc_results)
     w_results['significant'] = w_results['window_reject'] #null hypothesis was rejected
     #save
     dataframe_file = dataset + '\\lat_' + cond + '_mc_w.csv'
     w_results.to_csv(dataframe_file, index = False)
     
+    #b
+    # b_results = mc.bonferroni(mc_results)
+    # b_results['significant'] = b_results['bonferroni_reject'] #null hypothesis was rejected
+    # #save
+    # dataframe_file = dataset + '\\lat_' + cond + '_mc_b.csv'
+    # b_results.to_csv(dataframe_file, index = False)
     
-    #cp
-    cp_results = cp.cluster_permutations(data_cond)  
-    #save
-    dataframe_file = dataset + '\\lat_' + cond + '_cp.csv'
-    cp_results.to_csv(dataframe_file, index = False)
+    
+    # #cp
+    # cp_results = cp.cluster_permutations(data_cond)  
+    # #save
+    # dataframe_file = dataset + '\\lat_' + cond + '_cp.csv'
+    # cp_results.to_csv(dataframe_file, index = False)
                 
 def test():
     dataset = fm.ANALYSED_DIR
@@ -254,6 +263,9 @@ def results_mc(method):
 
 def results_mc_window():
     return results_mc('mc_w')
+
+def results_mc_bonferroni():
+    return results_mc('mc_b')
 
 
 #cluster permutation results
@@ -305,6 +317,7 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
     
     res_dfs = []
     res_dfs.append(results_mc_window())
+    res_dfs.append(results_mc_bonferroni())
     res_dfs.append(results_cp())
     
     #concat all results

@@ -88,17 +88,17 @@ def window(results):
     
     #false if no true neighbour
     for e in electrodes:
-        if not ((matrix.at[windows[0], e] == True) 
+        if not ((matrix.at[windows[0], e] == True) #comapre frist only with next
             and (matrix.at[windows[1], e] == True)):
             window_matrix.at[windows[0], e] = False
         
-        for i in range(1, last_window - 1):
+        for i in range(1, last_window):
             if not ((matrix.at[windows[i], e] == True) 
-                and ((matrix.at[windows[i-1], e] == True 
-                or matrix.at[windows[i+1], e] == True))):
+                and (matrix.at[windows[i-1], e] == True 
+                or matrix.at[windows[i+1], e] == True)):
                 window_matrix.at[windows[i], e] = False 
                 
-        if not ((matrix.at[windows[last_window], e] == True) 
+        if not ((matrix.at[windows[last_window], e] == True) #comapre last only wiht previous
             and (matrix.at[windows[last_window - 1], e] == True)):
             window_matrix.at[windows[last_window], e] = False
                 

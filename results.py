@@ -99,8 +99,8 @@ def summary_results_mc(window_size,time,density,local,cond,method):
                                                 analysed['significant'])
                                           
     positives = TP_count + FP_count
-    # global_significant = (positives > 0) #any true positive test
-    global_significant =  (positives > (total*c.SIGNIFICANCE)) #5% true positive tests                      
+    global_significant = (positives > 0) #any true positive test
+    #global_significant =  (positives > (total*c.SIGNIFICANCE)) #5% true positive tests                      
     
     return [window_size, time, density, local, 
             cond, method, 

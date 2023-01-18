@@ -24,7 +24,8 @@ def p_val_conds_local(data, p_dir):
                     col_wrap = 2,
                     scatter = True,
                     fit_reg=True,
-                    facet_kws=dict(sharex=True, sharey=True))
+                    sharex = True,
+                    sharey = True)
         file = p_dir + '\\local_scatter_' + d + '_conds.png'
         plot.savefig(file)
         plot.fig.clf()
@@ -60,6 +61,7 @@ def p_val_conds_local(data, p_dir):
     #         plot.get_figure().clf()
         
 def p_val_conds_vars_local(data, p_dir):
+    do_dir(p_dir) 
     #plot scatter
     for i in processing_vars:
         for d in dependent_vars:
@@ -70,41 +72,47 @@ def p_val_conds_vars_local(data, p_dir):
                         col_wrap = 2,
                         scatter = True,
                         fit_reg=True,
-                        facet_kws=dict(sharex=True, sharey=True))
+                        sharex = True,
+                        sharey = True)
             file = p_dir + '\\local_scatter_' + d + '_' + i + '_conds.png'
             plot.savefig(file)
             
 
 def p_val_conds_global(data, p_dir):
+    do_dir(p_dir) 
     plot = sb.lmplot(data=data, 
-                x='crit_p_val', y = 'positives_rate', 
+                x='crit_p_val', y = 'false_positives_rate', 
                 col = 'condition', #col, hue or row
                 col_wrap = 2,
                 scatter = True,
                 fit_reg=True,
-                facet_kws=dict(sharex=True, sharey=True))
-    plot.refline(y = 0.05)
+                sharex = True,
+                sharey = True)
+    #plot.refline(y = 0.05)
     file = p_dir + '\\global_scatter_positives_conds.png'
     plot.savefig(file)
     plot.fig.clf()
     
     
 def p_val_conds_vars_global(data, p_dir):
+    do_dir(p_dir) 
     for i in processing_vars:
         plot = sb.lmplot(data=data, 
-                    x='crit_p_val', y = 'positives_rate', 
+                    x='crit_p_val', y = 'false_positives_rate', 
                     hue = i, #hue or row
                     col = 'condition',
                     col_wrap = 2,
                     scatter = True,
                     fit_reg=True,
-                    facet_kws=dict(sharex=True, sharey=True))
-        plot.refline(y = 0.05)
+                    sharex = True,
+                    sharey = True)
+        #plot.refline(y = 0.05)
         file = p_dir + '\\global_scatter_positives_' + i + '_conds.png'
         plot.savefig(file)
 
 
 def p_val_tests(data, p_dir):
+    do_dir(p_dir) 
     plot = sb.relplot(data=data, 
                 x='total', y = 'crit_p_val')
     file = p_dir + '\\p_val.png'
@@ -122,19 +130,38 @@ def p_val_tests(data, p_dir):
     plot.savefig(file)
     plot.fig.clf()
     
-def total_tests(data,p_dir):
+def total_tests_global(data,p_dir):
+    do_dir(p_dir) 
     plot = sb.lmplot(data=data, 
-                x='total', y = 'positives_rate', 
+                x='total', y = 'false_positives_rate', 
                 col = 'condition',
                 col_wrap = 2,
                 scatter = True,
                 fit_reg=True,
-                facet_kws=dict(sharex=True, sharey=True))
-    plot.refline(y = 0.05)
-    file = p_dir + '\\total_tests.png'
+                sharex = True,
+                sharey = True)
+    #plot.refline(y = 0.05)
+    file = p_dir + '\\global_total_tests.png'
     plot.savefig(file)
     
+def total_tests_local(data,p_dir):
+    do_dir(p_dir)    
+    #plot scatter
+    for d in dependent_vars:
+        plot = sb.lmplot(data=data, 
+                x='total', y = 'type_I_ER', 
+                col = 'condition',
+                col_wrap = 2,
+                scatter = True,
+                fit_reg=True,
+                sharex = True,
+                sharey = True)
+        #plot.refline(y = 0.05)
+        file = p_dir + '\\local_total_tests_' + d + '.png'
+        plot.savefig(file)
+        plot.fig.clf()
 
+    
 def determine_p_val():
     # SETUP
     #load final results
@@ -154,15 +181,16 @@ def determine_p_val():
     
         # expected global results
         #data['expected'] = np.where(data['condition'] == 'baseline', False, True) 
-        data['positives_rate'] = data['positives']/data['total']
+        data['false_positives_rate'] = data['FP']/data['positives']
     
-        total_tests(data,p_dir)
+        total_tests_global(data,p_dir) #positive rate
+        total_tests_local(data,p_dir) #ER
     
-        p_val_conds_global(data, p_dir)
-        p_val_conds_vars_global(data, p_dir)
+        p_val_conds_global(data, p_dir) #positive rate
+        # p_val_conds_vars_global(data, p_dir)
         
-        p_val_conds_local(data, p_dir)
-        p_val_conds_vars_local(data, p_dir)
+        p_val_conds_local(data, p_dir) #ER
+        # p_val_conds_vars_local(data, p_dir)
 
     
 determine_p_val()
