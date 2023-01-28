@@ -33,6 +33,11 @@ def local_stats(data, var):
     #(mean, sd)
     return [data[var].mean(), data[var].std()]
 
+def FDR_stats(data):
+    data_positives = data[data['global_significant'] == True]
+    data_positives['FDR'] = data_positives['FP']/data_positives['positives']
+    return [data_positives['FDR'].mean(), data_positives['FDR'].std()]
+
 def global_metrics(data):
     #(TN, FP, FN, TP, type_I_ER, type_II_ER)
     
@@ -117,6 +122,35 @@ def compare_methods_conds_local(stats_dir, methods):
     dataframe_file = stats_dir + '\\local_comaprison_methods_conds.csv'
     d_stats_df.to_csv(dataframe_file)
 
+#compare local FDR
+def compare_FDR_conds_local(stats_dir, methods):
+    d_stats = []
+    
+    for m_name, m_data in methods.items():
+        
+        m_conds = split_data(m_data, 'condition')
+        
+        for c_name, mc_data in m_conds.items():
+            
+            stats = FDR_stats(mc_data)
+            
+            mc_stats = zip(repeat(m_name), repeat(c_name),
+                            stats_vars, stats)
+            d_stats.extend(mc_stats)
+            
+            
+    d_stats_df = pd.DataFrame(d_stats, 
+                              columns =['method', 'condition',
+                                         'stats', 'value'])
+    
+    d_stats_df = d_stats_df.pivot(index = ['condition', 'stats'],
+                                  columns = 'method',
+                                  values = 'value')
+    
+    d_stats_df = d_stats_df.round(decimals = 4)
+    
+    dataframe_file = stats_dir + '\\local_comaprison_FDR_conds.csv'
+    d_stats_df.to_csv(dataframe_file)
 
 # II. Within Methods
 
@@ -179,8 +213,37 @@ def compare_vars_conds_local(stats_i_dir, mi_split, m_name, i):
                 
                 dataframe_file = stats_i_dir + '\\local_comparison_' + i + '_conds.csv'
                 d_stats_df.to_csv(dataframe_file)
- 
 
+#FDR
+def compare_vars_FDR_conds_local(stats_i_dir, mi_split, m_name, i):
+    d_stats = []
+    
+    for i_name, mi_data in mi_split.items():
+        
+        mi_conds = split_data(mi_data, 'condition')
+        
+        for c_name, mic_data in mi_conds.items():
+            
+                stats = FDR_stats(mic_data)
+                m_stats = zip(repeat(m_name), repeat (i_name), repeat(c_name),
+                              stats_vars, stats)
+    
+                d_stats.extend(m_stats)
+                
+                d_stats_df = pd.DataFrame(d_stats,
+                                          columns = ['method', i, 'condition', 
+                                                     'stats', 'value'])
+                
+                d_stats_df = d_stats_df.pivot(index = ['method', 'condition', 'stats'],
+                                              columns = i,
+                                              values = 'value')
+                
+                d_stats_df = d_stats_df.round(decimals = 4)
+                
+                dataframe_file = stats_i_dir + '\\local_comparison_FDR_' + i + '_conds.csv'
+                d_stats_df.to_csv(dataframe_file)
+ 
+    
 #plots for local tests: box plots, violin plots?
 def plots_vars_conds_local(stats_i_dir, m_split, m_name, i):
     
@@ -295,11 +358,15 @@ def get_stats():
     
     #between methods
     
-    #global metrics
-    compare_methods_conds_global(stats_dir, methods)
     
     #local stats
     compare_methods_conds_local(stats_dir, methods)
+    
+    #global metrics
+    compare_methods_conds_global(stats_dir, methods)
+    
+    #FDR
+    compare_FDR_conds_local(stats_dir, methods)
 
     #within methods & conditions (vars)
     for m_name, m_data in methods.items():
@@ -315,22 +382,25 @@ def get_stats():
             do_dir(stats_i_dir)
         
             mi_data = split_data(m_data, i)
+                        
+            #local stats
+            compare_vars_conds_local(stats_i_dir, mi_data, m_name, i)
             
             #global metrics
             compare_vars_conds_global(stats_i_dir, mi_data, m_name, i)
             
-            #local stats
-            compare_vars_conds_local(stats_i_dir, mi_data, m_name, i)
+            #FDR
+            compare_vars_FDR_conds_local(stats_i_dir, mi_data, m_name, i)
             
             #plots
             plots_vars_conds_local(stats_i_dir, m_data, m_name, i)
             
             #tests
-            test_diff_conds_local(stats_i_dir, m_data, m_name, i)
+            #test_diff_conds_local(stats_i_dir, m_data, m_name, i)
 
 
 #make sure it's commented out before running lat statistics
-get_stats()
+#get_stats()
 
 
     

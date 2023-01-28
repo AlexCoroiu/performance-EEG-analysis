@@ -204,18 +204,18 @@ def test_lateralization(window_size, time, density, local, cond):
     w_results.to_csv(dataframe_file, index = False)
     
     #b
-    # b_results = mc.bonferroni(mc_results)
-    # b_results['significant'] = b_results['bonferroni_reject'] #null hypothesis was rejected
-    # #save
-    # dataframe_file = dataset + '\\lat_' + cond + '_mc_b.csv'
-    # b_results.to_csv(dataframe_file, index = False)
+    b_results = mc.bonferroni(mc_results)
+    b_results['significant'] = b_results['bonferroni_reject'] #null hypothesis was rejected
+    #save
+    dataframe_file = dataset + '\\lat_' + cond + '_mc_b.csv'
+    b_results.to_csv(dataframe_file, index = False)
     
     
-    # #cp
-    # cp_results = cp.cluster_permutations(data_cond)  
-    # #save
-    # dataframe_file = dataset + '\\lat_' + cond + '_cp.csv'
-    # cp_results.to_csv(dataframe_file, index = False)
+    #cp
+    cp_results = cp.cluster_permutations(data_cond)  
+    #save
+    dataframe_file = dataset + '\\lat_' + cond + '_cp.csv'
+    cp_results.to_csv(dataframe_file, index = False)
                 
 def test():
     dataset = fm.ANALYSED_DIR
@@ -405,17 +405,17 @@ def get_stats():
     
     #between methods
     
+    #local stats
+    stats.compare_methods_conds_local(stats_dir, methods)
+    
     #global metrics
     stats.compare_methods_conds_global(stats_dir, methods)
     
-    #local stats
-    stats.compare_methods_conds_local(stats_dir, methods)
+    #FDR
+    stats.compare_FDR_conds_local(stats_dir, methods)
 
     #within methods & conditions (vars)
     
-    #global
-
-    #local
     
     for m_name, m_data in methods.items():
         
@@ -430,16 +430,21 @@ def get_stats():
             fm.do_dir(stats_i_dir)
         
             mi_data = stats.split_data(m_data, i)
-            #global metrics
-            stats.compare_vars_conds_global(stats_i_dir, mi_data, m_name, i)
+            
             #local stats
             stats.compare_vars_conds_local(stats_i_dir, mi_data, m_name, i)
+            
+            #global metrics
+            stats.compare_vars_conds_global(stats_i_dir, mi_data, m_name, i)
+            
+            #FDR
+            stats.compare_vars_FDR_conds_local(stats_i_dir, mi_data, m_name, i)
             
             #plots
             stats.plots_vars_conds_local(stats_i_dir, m_data, m_name, i)
             
             #tests
-            stats.test_diff_conds_local(stats_i_dir, m_data, m_name, i)
+            #stats.test_diff_conds_local(stats_i_dir, m_data, m_name, i)
 
-run()
+#run()
 get_stats()
