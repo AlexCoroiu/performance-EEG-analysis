@@ -142,13 +142,10 @@ LAT_VARS = fm.do_vars(LAT_VARS_FILE, NEW_VARS,
 
 #amplitude variables
 AMP_VARS_FILE = 'amplitude_vars.csv'
-NEW_VARS = False #should be created only once (x2 test-retest)
+NEW_VARS = False #should be created only once 
 AMP_VARS = fm.do_vars(AMP_VARS_FILE, NEW_VARS, 
                         NR_PARTICIPANTS, EVENTS, EVENT_NAMES, 
                         AMPLITUDE_VAR_PART_DIST, AMPLITUDE_VAR_DIST)
-
-#part variables wide format (part x event_time)
-#event variables wide format (part x event_time)
 
 # PROPAGATION
 

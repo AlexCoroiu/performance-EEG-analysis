@@ -400,7 +400,7 @@ def get_stats():
 
 
 #make sure it's commented out before running lat statistics
-#get_stats()
+get_stats()
 
 
     

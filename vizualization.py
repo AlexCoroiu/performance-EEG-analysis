@@ -42,7 +42,9 @@ def simulate_wave(times, latency, duration, f_band, viz_dir):
     plt.clf()
     
     wave = 1e-10 * sinusoid * gf
-    plt.plot(times, wave)
+    plt.plot(times, wave*60)
+    plt.xlabel('Time')
+    plt.ylabel('Amplitude')
     file = viz_dir + '\\wave.png'
     plt.savefig(file)
     plt.clf()
@@ -84,24 +86,26 @@ def simulate_data(part_nr, viz_dir):
                                           src_sim, 
                                           forward=c.FWD)
     
-    raw_sim.pick(c.CHANNELS_VISUAL)
+    raw_sim.pick(c.CHANNELS_OCCIPITAL)
     
-    plot = raw_sim.plot(duration = 1.5, start = 0.5)
-    fig = plot.figure
+    plot = raw_sim.plot(duration = 1.5, start = 0.5, 
+                        show_scrollbars = False,
+                        show_scalebars = False)
     file = viz_dir + '\\signal.png'
-    fig.savefig(file)
-    fig.clear()
+    plot.savefig(file)
+    plot.clf()
     
     #add noise
     mne.simulation.add_noise(raw_sim, c.NOISE_COV,
                               iir_filter = c.NOISE_FILTER) 
     #random_state: default, different every time
     
-    plot = raw_sim.plot(duration = 1.5, start = 0.5)
-    fig = plot.figure
+    plot = raw_sim.plot(duration = 1.5, start = 0.5, 
+                        show_scrollbars = False,
+                        show_scalebars = False)
     file = viz_dir + '\\data.png'
-    fig.savefig(file)
-    fig.clear()
+    plot.savefig(file)
+    plot.clf()
 
 #vizualize       
 

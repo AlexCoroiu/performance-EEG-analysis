@@ -40,32 +40,34 @@ def sim_var_statistics(data, exp_dir):
 
     
 def sim_var_vizualization(data, exp_dir):
-    
     exp_dir = exp_dir + '\\plots'
     fm.do_dir(exp_dir)
     
     #density plots
     plot = sb.displot(data, x = 'var')
-    
+    fig = plot.fig
     file = exp_dir + '\\density.png'
-    fig = plot.figure
     fig.savefig(file)
     fig.clear()
     
     #density plots condition
     plot = sb.displot(data, x = 'var', row = 'condition')
-    
+    fig = plot.fig
     file = exp_dir + '\\cond_density.png'
-    fig = plot.figure
     fig.savefig(file)
     fig.clear()
 
     #violin plots participant
     plot = sb.violinplot(data = data, x = 'part', y = 'var')
-    
-    file = exp_dir + '\\violin.png'
+    plt.xlabel('Participant', fontsize = 20)
+    plt.ylabel('Deviation', fontsize = 20)
+    plt.xticks(fontsize = 16)
+    plt.yticks(fontsize = 16)
     fig = plot.figure
+    file = exp_dir + '\\violin.png'
+    fig = plot.get_figure()
     fig.set(figwidth = 16)
+    fig.set(figheight = 6)
     fig.savefig(file)
     fig.clear()
     
@@ -74,14 +76,13 @@ def sim_var_vizualization(data, exp_dir):
     plot = plot.map(sb.violinplot,
                     data = data,
                     x = 'part', y = 'var')
-    
+    fig = plot.fig
     file = exp_dir + '\\cond_violin.png'
-    fig = plot.figure
     fig.set(figwidth = 8)
     fig.savefig(file)
     fig.clear()
-
     
+
 def explore_sim_variables(exp_dir):
     gen_vars = {'amplitude': c.AMP_VARS, 
                 'latency': c.LAT_VARS}
@@ -126,28 +127,24 @@ def mne_part_level(part, raws, epos, evos, exp_dir):
     sphere = make_topo_sphere(epos[part])
     
     plot = raws[part].pick(picks = c.CHANNELS_OCCIPITAL).plot(duration = 4)
-    fig = plot.figure
     file = exp_dir + '\\raw.png'
-    fig.savefig(file)
-    fig.clear()
+    plot.savefig(file)
+    plot.clf()
     
     plot = epos[part].plot(picks = c.CHANNELS_OCCIPITAL, n_epochs = 4)
-    fig = plot.figure
     file = exp_dir + '\\epo.png'
-    fig.savefig(file)
-    fig.clear()
+    plot.savefig(file)
+    plot.clf()
     
     plot = epos[part].plot_psd(sphere = sphere)
-    fig = plot.figure
     file = exp_dir + '\\epo_psd.png'
-    fig.savefig(file)
-    fig.clear()
+    plot.savefig(file)
+    plot.clf()
     
     plot = epos[part].plot_psd_topomap(sphere = sphere)
-    fig = plot.figure
     file = exp_dir + '\\epo_psd_topo.png'
-    fig.savefig(file)
-    fig.clear()
+    plot.savefig(file)
+    plot.clf()
 
     avg_evo_conditions = dict(zip(c.CONDITIONS, evos[part]))
     
@@ -160,24 +157,21 @@ def mne_part_level(part, raws, epos, evos, exp_dir):
         epochs_cond = epos[part][cond]
         
         plot = epochs_cond.plot(picks = c.CHANNELS_OCCIPITAL)
-        fig = plot.figure
         file = cond_dir + '\\epo.png'
-        fig.savefig(file)
-        fig.clear()
+        plot.savefig(file)
+        plot.clf()
     
         [plot] = epochs_cond.plot_image(combine='mean') 
         #mean over all channels, can select jsut a specific one as well
-        fig = plot.figure
         file = cond_dir + '\\epo_mean.png'
-        fig.savefig(file)
-        fig.clear()
+        plot.savefig(file)
+        plot.clf()
         
         [plot] = epochs_cond.plot_image(picks = [electrode], combine='mean') 
         #mean for POz
-        fig = plot.figure
         file = cond_dir + '\\epo_'  + electrode + '.png'
-        fig.savefig(file)
-        fig.clear()
+        plot.savefig(file)
+        plot.clf()
     
         #evoked data
         evo_cond = avg_evo_conditions[cond]
@@ -185,17 +179,15 @@ def mne_part_level(part, raws, epos, evos, exp_dir):
         plot = evo_cond.plot_topomap(times = PLOT_TIMES,
                               sphere = sphere,
                               ch_type = 'eeg')
-        fig = plot.figure
         file = cond_dir + '\\evo_topo.png'
-        fig.savefig(file)
-        fig.clear()
+        plot.savefig(file)
+        plot.clf()
         
         #evo_cond.plot(gfp = True)
         plot = evo_cond.plot(picks = [electrode], gfp=False)
-        fig = plot.figure
         file = cond_dir + '\\evo_' + electrode + '.png'
-        fig.savefig(file)
-        fig.clear()
+        plot.savefig(file)
+        plot.clf()
         
     #compare averagee evo 
     [plot] = mne.viz.plot_compare_evokeds(evos[part],
@@ -203,10 +195,9 @@ def mne_part_level(part, raws, epos, evos, exp_dir):
                                           legend='upper left',
                                           show_sensors='upper right')
     
-    fig = plot.figure
     file = exp_dir + '\\evo_conds.png'
-    fig.savefig(file)
-    fig.clear()
+    plot.savefig(file)
+    plot.clf()
     
     #compare averagee evo for POz
     [plot] = mne.viz.plot_compare_evokeds(evos[part], picks = [electrode],
@@ -214,11 +205,10 @@ def mne_part_level(part, raws, epos, evos, exp_dir):
                                           legend='upper left',
                                           show_sensors='upper right')
     
-    fig = plot.figure
     file = exp_dir + '\\evo_conds_' + electrode + '.png'
-    fig.savefig(file)
-    fig.clear()
-    
+    plot.savefig(file)
+    plot.clf()
+
 
 def explore_mne(exp_dir):
     #raws

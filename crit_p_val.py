@@ -212,11 +212,8 @@ def positive_rate(data):
 
     data_base_sig = data_base[data_base['global_significant'] == True]
 
-    data_base_sig['positives_rate'] = data_base_sig['positives'] / \
-        data_base_sig['total']
-
     print(data_base_sig['positives'].describe())
-    print(data_base_sig['positives_rate'].describe())
+    print(data_base_sig['type_I_ER'].describe())
 
 
 def determine_p_val():
@@ -233,21 +230,21 @@ def determine_p_val():
 
         data = data[data['method'] == 'mc_w']
 
-        # positive_rate(data)
+        positive_rate(data)
 
         # FDR
         data['FDR'] = data['FP']/data['positives']
 
         # asses p val calcualtion
-        # p_val_metrics(data,p_dir)
+        p_val_metrics(data,p_dir)
 
-        # total_metrics(data,p_dir)
+        total_metrics(data,p_dir)
 
-        #vars_metrics(data, p_dir)
+        vars_metrics(data, p_dir)
 
         global_sig(data, p_dir)
 
-        #p_val_total(data, p_dir)
+        p_val_total(data, p_dir)
 
 
 determine_p_val()
