@@ -15,7 +15,6 @@ processing_vars = ['window_size', 'time_interval', 'density', 'location']
 dependent_vars = ['type_I_ER', 'type_II_ER', 'FDR']
 stats_vars = ['M', 'SD']
 
-
 def p_val_metrics(data, p_dir):
     do_dir(p_dir)
     # plot scatter
@@ -35,37 +34,6 @@ def p_val_metrics(data, p_dir):
 
         plot.savefig(file)
         plot.fig.clf()
-
-    # #plot violin
-    # for d in dependent_vars:
-    #     for cond in conditions:
-    #         data_c = data[data['condition'] == cond]
-    #         plot = sb.violinplot(data=data_c,
-    #                     x='crit_p_val', y=d)
-    #         file = p_dir + '\\violin_' + d + '_' + cond + '.png'
-    #         plot.get_figure().savefig(file)
-    #         plot.get_figure().clf()
-
-    # #plot histogram
-    # for d in dependent_vars:
-    #     for cond in conditions:
-    #         data_c = data[data['condition'] == cond]
-    #         plot = sb.histplot(data=data_c,
-    #                     x='crit_p_val', y=d)
-    #         file = p_dir + '\\hist_' + d + '_' + cond + '.png'
-    #         plot.get_figure().savefig(file)
-    #         plot.get_figure().clf()
-
-    # #plot boxplot
-    # for d in dependent_vars:
-    #     for cond in conditions:
-    #         data_c = data[data['condition'] == cond]
-    #         plot = sb.boxplot(data=data_c,
-    #                     x='crit_p_val', y=d)
-    #         file = p_dir + '\\box_' + d + '_' + cond + '.png'
-    #         plot.get_figure().savefig(file)
-    #         plot.get_figure().clf()
-
 
 def vars_metrics(data, p_dir):
     do_dir(p_dir)
@@ -92,8 +60,11 @@ def vars_metrics(data, p_dir):
 
 def p_val_total(data, p_dir):
     do_dir(p_dir)
-    plot = sb.relplot(data=data,
-                      x='total', y='crit_p_val')
+    
+    data_plot = data.rename(columns = {'total':'dataset_size'})
+    
+    plot = sb.relplot(data=data_plot,
+                      x='dataset_size', y='crit_p_val')
     file = p_dir + '\\p_val.png'
 
     min_tests = data['total'].min()
@@ -103,7 +74,7 @@ def p_val_total(data, p_dir):
 
     x = np.linspace(min_tests, max_tests, max_tests)
     #y = 2*np.sqrt(0.05/x)
-    y = np.sqrt(0.05/(2*x))
+    y = (1/2)*np.sqrt(0.05/x)
     plt.plot(x, y)
 
     plot.savefig(file)
@@ -113,9 +84,11 @@ def p_val_total(data, p_dir):
 def total_metrics(data, p_dir):
     do_dir(p_dir)
     # plot scatter
+    
+    data_plot = data.rename(columns = {'total':'dataset_size'})
     for d in dependent_vars:
-        plot = sb.lmplot(data=data,
-                         x='total', y=d,
+        plot = sb.lmplot(data=data_plot,
+                         x='dataset_size', y=d,
                          col='condition',
                          col_wrap=2,
                          scatter=True,
@@ -134,33 +107,6 @@ def total_metrics(data, p_dir):
 
 def global_sig(data, p_dir):
     do_dir(p_dir)
-
-    #data_sig = data[data['global_significant'] == True]
-    #conditions = data_sig['condition'].unique()
-
-    # for cond in conditions:
-    #     data_c = data_sig[data_sig['condition'] == cond]
-    #     #plot histogram
-    #     plot = sb.histplot(data=data_c,
-    #                         x='total',
-    #                         stat = 'count')
-    #     file = p_dir + '\\global_' + cond + '.png'
-
-    #     plot.figure.savefig(file)
-    #     plot.figure.clf()
-
-    # plot histogram
-    # plot = sb.histplot(data=data_sig,
-    #                    hue='condition',
-    #                    common_bins=False,
-    #                    multiple='dodge',
-    #                    x='total',
-    #                    stat='count')
-    # file = p_dir + '\\global.png'
-
-    # plot.figure.savefig(file)
-    # plot.figure.clf()
-    
     
     #create eprcentage data
     conditions = data['condition'].unique()
@@ -170,14 +116,14 @@ def global_sig(data, p_dir):
     for cond in conditions:
         data_c = data[data['condition'] == cond]
         data_c = data_c.groupby('total')['global_significant'].value_counts(normalize = True)
-        data_c = data_c.mul(100).rename('percent').reset_index()
+        data_c = data_c.mul(100).rename('percent_significant').reset_index()
         data_c['condition'] = cond
         percentage_conds.append(data_c)
         
     percentage_data = pd.concat(percentage_conds)
     
     percentage_data = percentage_data[['condition', 'total', 
-                                       'global_significant', 'percent']]
+                                       'global_significant', 'percent_significant']]
     
     print(percentage_data)
     
@@ -187,8 +133,10 @@ def global_sig(data, p_dir):
     percentage_data.to_csv(dataframe_file)
     
     #plot
+    percentage_data = percentage_data.rename(columns = {'total':'dataset_size'})
+    
     plot = sb.lmplot(data=percentage_data,
-                    x='total', y='percent',
+                    x='dataset_size', y='percent_significant',
                     col='condition',
                     col_wrap=2,
                     scatter = True,
@@ -201,7 +149,7 @@ def global_sig(data, p_dir):
 
     for ax in plot.axes.flat:
         ax.axhline(5, ls='--')
-
+        
     plot.savefig(file)
     plot.fig.clf()
     
@@ -236,17 +184,15 @@ def determine_p_val():
         data['FDR'] = data['FP']/data['positives']
 
         # asses p val calcualtion
-        p_val_metrics(data,p_dir)
+        #p_val_metrics(data,p_dir)
 
-        total_metrics(data,p_dir)
+        #total_metrics(data,p_dir)
 
-        vars_metrics(data, p_dir)
+        #vars_metrics(data, p_dir)
 
-        global_sig(data, p_dir)
+        #global_sig(data, p_dir)
 
         p_val_total(data, p_dir)
 
 
 determine_p_val()
-# hue for highlighting other aspects
-# row like col for matrix
