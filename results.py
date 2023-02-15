@@ -23,7 +23,7 @@ def load_analysed(window_size, time, density, local, cond, method):
               
     return analysed
 
-def true_signal_mc(data, cond):
+def true_signal_mt(data, cond):
     #actual positive data units found in data
     if "baseline" in cond:
         #no local positives expected
@@ -81,7 +81,7 @@ def get_metrics(expected, found):
 #precision, recall and F1 dont make sense to emasure this dataset
 
 #do calcualtions and add to data
-def summary_results_mc(window_size,time,density,local,cond,method):
+def summary_results_mt(window_size,time,density,local,cond,method):
 
     analysed = load_analysed(window_size,time,density,local,cond,method)
     
@@ -92,7 +92,7 @@ def summary_results_mc(window_size,time,density,local,cond,method):
     crit_p_val = analysed['crit_p_val'].values[0]
     
     #CONFUSION MATRIX & METRICS
-    analysed['expected'] = true_signal_mc(analysed,cond)
+    analysed['expected'] = true_signal_mt(analysed,cond)
     
     (TN_count, FP_count, FN_count, TP_count, 
      type_I_error, type_II_error) = get_metrics(analysed['expected'],
@@ -150,7 +150,7 @@ def summary_results_cp(window_size,time,density,local,cond):
         
     
 #multiple comaprisons results for all method params
-def results_mc(method):
+def results_mt(method):
     dataset = fm.DATA_DIR
     
     results = []
@@ -160,8 +160,8 @@ def results_mc(method):
             for d in c.DENSITY.keys():
                 for l in c.LOCAL:
                     for cond in c.TEST_CONDITIONS:
-                        print('...RESULTS MC',w,t,d,l,cond,method)
-                        result = summary_results_mc(w,t,d,l,cond,method)
+                        print('...RESULTS MT',w,t,d,l,cond,method)
+                        result = summary_results_mt(w,t,d,l,cond,method)
                         results.append(result)
                     
     results_df = pd.DataFrame(results, 
@@ -178,11 +178,11 @@ def results_mc(method):
     
     return results_df 
     
-def results_mc_window():
-    return results_mc('mc_w')
+def results_mt_window():
+    return results_mt('mt_w')
     
-def results_mc_bonferroni():
-    return results_mc('mc_b')
+def results_mt_bonferroni():
+    return results_mt('mt_b')
 
     
 #cluster permutations results

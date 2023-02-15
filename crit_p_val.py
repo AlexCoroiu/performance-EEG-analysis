@@ -168,15 +168,15 @@ def determine_p_val():
     # SETUP
     # load final results
     data_ERP = pd.read_csv('results.csv')
-    data_lat = pd.read_csv('lat_results.csv')
+    data_lat = pd.read_csv('results_lat.csv')
 
-    data_tests = {'diff': data_ERP, 'lat': data_lat}
+    data_tests = {'main': data_ERP, 'lat': data_lat}
 
     for d_name, data in data_tests.items():
         p_dir = 'p_val_' + d_name
         do_dir(p_dir)
 
-        data = data[data['method'] == 'mc_w']
+        data = data[data['method'] == 'mt_w']
 
         positive_rate(data)
 
@@ -184,15 +184,14 @@ def determine_p_val():
         data['FDR'] = data['FP']/data['positives']
 
         # asses p val calcualtion
-        #p_val_metrics(data,p_dir)
+        p_val_metrics(data,p_dir)
 
-        #total_metrics(data,p_dir)
+        total_metrics(data,p_dir)
 
-        #vars_metrics(data, p_dir)
+        vars_metrics(data, p_dir)
 
-        #global_sig(data, p_dir)
+        global_sig(data, p_dir)
 
         p_val_total(data, p_dir)
-
 
 determine_p_val()

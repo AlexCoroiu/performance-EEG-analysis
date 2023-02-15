@@ -19,7 +19,7 @@ import file_manager as fm
 #for each time x electrode
 #default treshold corresponding to 0.05 p-value
 
-def multiple_comparison(data):
+def multiple_testing(data):
     #print('Data\n', data)
     #reshape data into (time x channel) on participant
     #format wide
@@ -126,20 +126,20 @@ def test_condition(window_size, time, density, local, cond, correction):
     data = prep.load_test_dfs(window_size, time, density, local) 
     data_cond = data[cond]
 
-    results = multiple_comparison(data_cond)
+    results = multiple_testing(data_cond)
     
     if correction == 'bonferroni':
         b_results = bonferroni(results)  
         b_results['significant'] = b_results['bonferroni_reject'] #null hypothesis was rejected
         #save
-        dataframe_file = dataset + '\\' + cond + '_mc_b.csv'
+        dataframe_file = dataset + '\\' + cond + '_mt_b.csv'
         b_results.to_csv(dataframe_file, index = False)
 
     elif correction == 'window':
         w_results = window(results)
         w_results['significant'] = w_results['window_reject'] #null hypothesis was rejected
         #save
-        dataframe_file = dataset + '\\' + cond + '_mc_w.csv'
+        dataframe_file = dataset + '\\' + cond + '_mt_w.csv'
         w_results.to_csv(dataframe_file, index = False)
                 
 def test(correction):
@@ -151,7 +151,7 @@ def test(correction):
             for d in c.DENSITY.keys():
                 for l in c.LOCAL:
                     for cond in c.TEST_CONDITIONS:
-                        print('...TESTING MC',w,t,d,l,cond)
+                        print('...TESTING MT',w,t,d,l,cond)
                         test_condition(w,t,d,l,cond,correction)
                     
 def test_window():

@@ -10,7 +10,7 @@ import simulation
 import processing
 
 import preparation
-import multiple_comparisons
+import multiple_testing
 import cluster_permutations
 
 import results
@@ -24,14 +24,14 @@ def run_data():
     preparation.prepare()
       
 def run_methods():
-    multiple_comparisons.test_window()
-    # multiple_comparisons.test_bonferroni()
-    # cluster_permutations.test()
+    multiple_testing.test_window()
+    multiple_testing.test_bonferroni()
+    cluster_permutations.test()
 
 def run_results():
     res_dfs = []
-    res_dfs.append(results.results_mc_window())
-    res_dfs.append(results.results_mc_bonferroni())
+    res_dfs.append(results.results_mt_window())
+    res_dfs.append(results.results_mt_bonferroni())
     res_dfs.append(results.results_cp())
     
     #concat all results

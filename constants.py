@@ -134,14 +134,14 @@ AMPLITUDE_VAR_DIST = (0,2.5)
 #amplitude +/- 5mV (2*SD)
 
 #latency variables
-LAT_VARS_FILE = 'latency_vars.csv'
+LAT_VARS_FILE = 'vars_latency.csv'
 NEW_VARS = False #should be created only once (x2 test-retest)
 LAT_VARS = fm.do_vars(LAT_VARS_FILE, NEW_VARS, 
                         NR_PARTICIPANTS, EVENTS, EVENT_NAMES, 
                         LATENCY_VAR_PART_DIST, LATENCY_VAR_DIST)
 
 #amplitude variables
-AMP_VARS_FILE = 'amplitude_vars.csv'
+AMP_VARS_FILE = 'vars_amplitude.csv'
 NEW_VARS = False #should be created only once 
 AMP_VARS = fm.do_vars(AMP_VARS_FILE, NEW_VARS, 
                         NR_PARTICIPANTS, EVENTS, EVENT_NAMES, 

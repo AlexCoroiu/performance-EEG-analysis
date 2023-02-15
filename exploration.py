@@ -209,6 +209,48 @@ def mne_part_level(part, raws, epos, evos, exp_dir):
     plot.savefig(file)
     plot.clf()
 
+#VIZUALIZE average
+def mne_avg(sphere, raws, epos, evos, exp_dir):
+    #sphere model for topographic representation
+    electrode = 'POz'
+    
+    evos_conds = map(list,zip(*evos))
+    evos_conditions = dict(zip(c.CONDITIONS, evos_conds))
+    avg_evos = []
+    
+    for cond in c.CONDITIONS:
+        
+        evos_cond = evos_conditions[cond]
+        avg_evo_cond = mne.grand_average(evos_cond)
+        
+        cond_dir = exp_dir + '\\' + cond
+        fm.do_dir(cond_dir)
+        
+        #this condition from all participants
+        plot = avg_evo_cond.plot_topomap(times = PLOT_TIMES,
+                              sphere = sphere,
+                              ch_type = 'eeg')
+        file = cond_dir + '\\evo_topo.png'
+        plot.savefig(file)
+        plot.clf()
+        
+        #evo_cond.plot(gfp = True)
+        plot = avg_evo_cond.plot(picks = [electrode], gfp=False)
+        file = cond_dir + '\\evo_' + electrode + '.png'
+        plot.savefig(file)
+        plot.clf()
+    
+        avg_evos.append(avg_evo_cond)
+        
+    #compare average evo for POz
+    [plot] = mne.viz.plot_compare_evokeds(avg_evos, picks = [electrode],
+                                          sphere = sphere,
+                                          legend='upper left',
+                                          show_sensors='upper right')
+    
+    file = exp_dir + '\\evo_conds_' + electrode + '.png'
+    plot.savefig(file)
+    plot.clf()
 
 def explore_mne(exp_dir):
     #raws
@@ -221,17 +263,24 @@ def explore_mne(exp_dir):
     evos = processing.load_evos()
     
     part_nr = 0 #only for one part
-    part_dir = exp_dir + '\\part' + str(part_nr+1)
-    fm.do_dir(part_dir)
     
-    mne_part_level(part_nr, raws, epos, evos, part_dir) 
+    # part level
+    # part_dir = exp_dir + '\\part' + str(part_nr+1)
+    # fm.do_dir(part_dir)
+    # mne_part_level(part_nr, raws, epos, evos, part_dir) 
+    
+    #average
+    avg_dir =  exp_dir + '\\avg' 
+    fm.do_dir(avg_dir)
+    sphere = make_topo_sphere(epos[part_nr])
+    mne_avg(sphere, raws, epos, evos, avg_dir)
     
 def explore():
     #directory
     exp_dir = "exploration"
     fm.do_dir(exp_dir)
     
-    explore_sim_variables(exp_dir)
+    #explore_sim_variables(exp_dir)
     
     exp_dir = exp_dir + "\\data"
     fm.do_dir(exp_dir)

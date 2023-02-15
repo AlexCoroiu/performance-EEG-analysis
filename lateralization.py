@@ -7,10 +7,10 @@ Created on Thu Nov  3 08:21:17 2022
 import file_manager as fm
 import constants as c
 import processing as pross
-import multiple_comparisons as mc
+import multiple_testing as mt
 import cluster_permutations as cp
 import results as res
-import statistics as stats
+import statistics_summary as stats
 import pandas as pd
 import numpy as np
 from ast import literal_eval
@@ -193,21 +193,21 @@ def test_lateralization(window_size, time, density, local, cond):
     data_cond['channel'] = electrodes
 
 
-    #mc
-    mc_results = mc.multiple_comparison(data_cond)
+    #mt
+    mt_results = mt.multiple_comparison(data_cond)
     
     #w
-    w_results = mc.window(mc_results)
+    w_results = mt.window(mt_results)
     w_results['significant'] = w_results['window_reject'] #null hypothesis was rejected
     #save
-    dataframe_file = dataset + '\\lat_' + cond + '_mc_w.csv'
+    dataframe_file = dataset + '\\lat_' + cond + '_mt_w.csv'
     w_results.to_csv(dataframe_file, index = False)
     
     #b
-    b_results = mc.bonferroni(mc_results)
+    b_results = mt.bonferroni(mt_results)
     b_results['significant'] = b_results['bonferroni_reject'] #null hypothesis was rejected
     #save
-    dataframe_file = dataset + '\\lat_' + cond + '_mc_b.csv'
+    dataframe_file = dataset + '\\lat_' + cond + '_mt_b.csv'
     b_results.to_csv(dataframe_file, index = False)
     
     
@@ -232,7 +232,7 @@ def test():
 #RESULTS
 
 #multiple comaprisons results for all method params
-def results_mc(method):
+def results_mt(method):
     dataset = fm.DATA_DIR
     
     results = []
@@ -243,8 +243,8 @@ def results_mc(method):
                 for l in c.LOCAL:
                     for cond in conditions:
                         lat_cond = 'lat_' + cond
-                        print('...RESULTS MC',w,t,d,l,lat_cond)
-                        result = res.summary_results_mc(w,t,d,l,lat_cond,method)
+                        print('...RESULTS MT',w,t,d,l,lat_cond)
+                        result = res.summary_results_mt(w,t,d,l,lat_cond,method)
                         results.append(result)
                     
     results_df = pd.DataFrame(results, 
@@ -261,11 +261,11 @@ def results_mc(method):
     
     return results_df 
 
-def results_mc_window():
-    return results_mc('mc_w')
+def results_mt_window():
+    return results_mt('mt_w')
 
-def results_mc_bonferroni():
-    return results_mc('mc_b')
+def results_mt_bonferroni():
+    return results_mt('mt_b')
 
 
 #cluster permutation results
@@ -316,8 +316,8 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
     #test()
     
     res_dfs = []
-    res_dfs.append(results_mc_window())
-    res_dfs.append(results_mc_bonferroni())
+    res_dfs.append(results_mt_window())
+    res_dfs.append(results_mt_bonferroni())
     res_dfs.append(results_cp())
     
     #concat all results
@@ -363,16 +363,16 @@ def run():
     
     #print(results_df.isnull().sum().sum()) #check for NaN
 
-    dataframe_file = 'lat_results.csv'
+    dataframe_file = 'results_lat.csv'
     results_df.to_csv(dataframe_file, index = False)
 
-#STATS
+#stats
 #get statistics
 def load_final_results():
-    dataframe_file = 'lat_results.csv'
+    dataframe_file = 'results_lat.csv'
     data = pd.read_csv(dataframe_file)
     
-    #remove tests where no clusters were identified (and print)
+    #remove testats where no clusters were identified (and print)
     #print('NO CLUSTERS FORMED', (data[data['total'] == 0]).shape[0])
     
     #print(data.shape[0])
@@ -398,10 +398,10 @@ def get_stats():
     methods = stats.split_data(data, 'method')
 
     #directories
-    stats_dir = "lat_statistics"
+    stats_dir = "statistics_lat"
     fm.do_dir(stats_dir)
     
-    # STATS 
+    # stats 
     
     #between methods
     
@@ -443,8 +443,8 @@ def get_stats():
             #plots
             stats.plots_vars_conds_local(stats_i_dir, m_data, m_name, i)
             
-            #tests
+            #testats
             #stats.test_diff_conds_local(stats_i_dir, m_data, m_name, i)
 
-#run()
+run()
 get_stats()

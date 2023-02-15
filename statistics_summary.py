@@ -12,7 +12,6 @@ from results import get_metrics
 from file_manager import do_dir
 from itertools import repeat
 import scipy
-from statsmodels.stats import weightstats
 
 #variables
 simulation_vars = ['amplitude', 'noise', 'band_pass']
@@ -69,13 +68,13 @@ def compare_methods_conds_global(stats_dir, methods):
         
         m_conds = split_data(m_data, 'condition')
 
-        for c_name, mc_data in m_conds.items():
+        for c_name, mt_data in m_conds.items():
             
-            metrics = global_metrics(mc_data)
-            mc_metrics = zip(repeat(m_name), repeat(c_name), 
+            metrics = global_metrics(mt_data)
+            mt_metrics = zip(repeat(m_name), repeat(c_name), 
                             dependent_vars, metrics)
             
-            methods_metrics.extend(mc_metrics)
+            methods_metrics.extend(mt_metrics)
     
     methods_metrics_df = pd.DataFrame(methods_metrics, 
                                       columns =['method', 'condition', 'metric', 'value'])
@@ -98,15 +97,15 @@ def compare_methods_conds_local(stats_dir, methods):
         
         m_conds = split_data(m_data, 'condition')
         
-        for c_name, mc_data in m_conds.items():
+        for c_name, mt_data in m_conds.items():
             
             for d in dependent_vars:
                 
-                stats = local_stats(mc_data, d)
+                stats = local_stats(mt_data, d)
                 
-                mc_stats = zip(repeat(m_name), repeat(c_name), repeat(d),
+                mt_stats = zip(repeat(m_name), repeat(c_name), repeat(d),
                                 stats_vars, stats)
-                d_stats.extend(mc_stats)
+                d_stats.extend(mt_stats)
             
             
     d_stats_df = pd.DataFrame(d_stats, 
@@ -130,13 +129,13 @@ def compare_FDR_conds_local(stats_dir, methods):
         
         m_conds = split_data(m_data, 'condition')
         
-        for c_name, mc_data in m_conds.items():
+        for c_name, mt_data in m_conds.items():
             
-            stats = FDR_stats(mc_data)
+            stats = FDR_stats(mt_data)
             
-            mc_stats = zip(repeat(m_name), repeat(c_name),
+            mt_stats = zip(repeat(m_name), repeat(c_name),
                             stats_vars, stats)
-            d_stats.extend(mc_stats)
+            d_stats.extend(mt_stats)
             
             
     d_stats_df = pd.DataFrame(d_stats, 
@@ -252,12 +251,12 @@ def plots_vars_conds_local(stats_i_dir, m_split, m_name, i):
   
     m_conds = split_data(m_split, 'condition')
 
-    for c_name, mc_data in m_conds.items(): #for each cond
+    for c_name, mt_data in m_conds.items(): #for each cond
         
     #split per d
         for d in dependent_vars: #for each metric
             
-            plot = sb.violinplot(data=mc_data, 
+            plot = sb.violinplot(data=mt_data, 
                                  x=i, y=d)
             file = stats_plots_dir + '\\' + d + '_' + c_name + '_violin.png'
             plot.get_figure().savefig(file)
@@ -274,13 +273,13 @@ def test_diff_conds_local(stats_i_dir, m_split, m_name, i):
   
     m_conds = split_data(m_split, 'condition')
 
-    for c_name, mc_data in m_conds.items(): #for each cond
+    for c_name, mt_data in m_conds.items(): #for each cond
         
     #split per d
         for d in dependent_vars: #for each metric
             
             ids = list(set(['method', 'condition'] + independent_vars) - set([i]))    
-            d_data = mc_data.pivot(index = ids,
+            d_data = mt_data.pivot(index = ids,
                                    columns = i,
                                    values = d)
             
@@ -289,7 +288,7 @@ def test_diff_conds_local(stats_i_dir, m_split, m_name, i):
             
             
             #calcualte differences
-            vals = mc_data[i].unique()
+            vals = mt_data[i].unique()
             for v1 in vals:
                 for v2 in vals:
                     v_diff = d_data[v1] - d_data[v2]
@@ -400,7 +399,7 @@ def get_stats():
 
 
 #make sure it's commented out before running lat statistics
-get_stats()
+#get_stats()
 
 
     

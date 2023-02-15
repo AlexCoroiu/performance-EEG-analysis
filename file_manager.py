@@ -15,7 +15,7 @@ import pandas as pd
 
 #sample subject
 SAMPLE_DATA_PATH = mne.datasets.sample.data_path()
-SUBJECTS_DIR = SAMPLE_DATA_PATH + '\subjects'
+SUBJECTS_DIR = os.path.join(SAMPLE_DATA_PATH,'subjects')
 SUBJECT = 'sample'
         
 #get signal location labels
