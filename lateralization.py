@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Nov  3 08:21:17 2022
-
-@author: Alexandra
+@author: Alexandra Coroiu
 """
+
 import file_manager as fm
 import constants as c
 import processing as pross
@@ -446,5 +445,5 @@ def get_stats():
             #testats
             #stats.test_diff_conds_local(stats_i_dir, m_data, m_name, i)
 
-run()
+#run()
 get_stats()

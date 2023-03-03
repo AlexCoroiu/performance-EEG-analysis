@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jun 14 13:33:27 2022
-
-@author: User
+@author: Alexandra Coroiu
 """
 
 #setup
@@ -54,7 +52,7 @@ def cluster_permutations(data):
     #default treshold corresponding to 0.05 p-value
     
 
-    t_stats, clusters, p_val_clusters, max_results = mne.stats.spatio_temporal_cluster_1samp_test( X = data_array, 
+    t_stats, clusters, p_val_clusters, max_results = mne.stats.spatio_temporal_cluster_1samp_test(X = data_array, 
                                                                                                   adjacency = adjacency,
                                                                                                   out_type = 'mask')
     

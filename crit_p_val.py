@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Nov  3 15:42:00 2022
-
-@author: Alexandra
+@author: Alexandra Coroiu
 """
+
 import pandas as pd
 from file_manager import do_dir
 import seaborn as sb
@@ -24,7 +23,7 @@ def p_val_metrics(data, p_dir):
                          col='condition',  # col, hue or row
                          col_wrap=2,
                          scatter=True,
-                         fit_reg=True,
+                         fit_reg=False,
                          sharex=True,
                          sharey=True)
         file = p_dir + '\\scatter_' + d + '_conds.png'
@@ -34,29 +33,6 @@ def p_val_metrics(data, p_dir):
 
         plot.savefig(file)
         plot.fig.clf()
-
-def vars_metrics(data, p_dir):
-    do_dir(p_dir)
-    # plot scatter
-    for i in processing_vars:
-        for d in dependent_vars:
-            plot = sb.lmplot(data=data,
-                             x='total', y=d,
-                             hue=i,  # hue or row
-                             col='condition',
-                             col_wrap=2,
-                             scatter=True,
-                             fit_reg=True,
-                             sharex=True,
-                             sharey=True)
-            file = p_dir + '\\scatter_' + d + '_' + i + '_conds.png'
-
-            for ax in plot.axes.flat:
-                ax.axhline(0.05, ls='--')
-
-            plot.savefig(file)
-            plot.fig.clf()
-
 
 def p_val_total(data, p_dir):
     do_dir(p_dir)
@@ -79,7 +55,28 @@ def p_val_total(data, p_dir):
 
     plot.savefig(file)
     plot.fig.clf()
+    
+def vars_metrics(data, p_dir):
+    do_dir(p_dir)
+    # plot scatter
+    for i in processing_vars:
+        for d in dependent_vars:
+            plot = sb.lmplot(data=data,
+                             x='total', y=d,
+                             hue=i,  # hue or row
+                             col='condition',
+                             col_wrap=2,
+                             scatter=True,
+                             fit_reg=False,
+                             sharex=True,
+                             sharey=True)
+            file = p_dir + '\\scatter_' + d + '_' + i + '_conds.png'
 
+            for ax in plot.axes.flat:
+                ax.axhline(0.05, ls='--')
+
+            plot.savefig(file)
+            plot.fig.clf()
 
 def total_metrics(data, p_dir):
     do_dir(p_dir)
@@ -92,14 +89,48 @@ def total_metrics(data, p_dir):
                          col='condition',
                          col_wrap=2,
                          scatter=True,
-                         fit_reg=True,
+                         logx=True,
+                         ci = None,
+                         line_kws={"color": "black", 'lw':1},
                          sharex=True,
                          sharey=True)
         #plot.refline(y = 0.05)
+        plot.set(ylim = (-0.05,1.05))
+        
         file = p_dir + '\\total_tests_' + d + '.png'
 
         for ax in plot.axes.flat:
             ax.axhline(0.05, ls='--')
+
+
+        plot.savefig(file)
+        plot.fig.clf()
+
+def total_metrics_avg(data, p_dir):
+    do_dir(p_dir)
+    # plot scatter
+    
+    data_plot = data.rename(columns = {'total':'dataset_size'})
+    for d in dependent_vars:
+        plot = sb.lmplot(data=data_plot,
+                         x='dataset_size', y=d,
+                         col='condition',
+                         col_wrap=2,
+                         x_estimator = np.mean,
+                         scatter=True,
+                         logx=True,
+                         ci = False,
+                         line_kws={"color": "black", 'lw':1},
+                         sharex=True,
+                         sharey=True)
+        #plot.refline(y = 0.05)
+        plot.set(ylim = (-0.05,1.05))
+        
+        file = p_dir + '\\total_tests_' + d + '.png'
+
+        for ax in plot.axes.flat:
+            ax.axhline(0.05, ls='--')
+
 
         plot.savefig(file)
         plot.fig.clf()
@@ -140,10 +171,12 @@ def global_sig(data, p_dir):
                     col='condition',
                     col_wrap=2,
                     scatter = True,
-                    fit_reg=False,
+                    logx=True,
+                    ci = None,
+                    line_kws={"color": "black", 'lw':1},
                     sharex=True,
                     sharey=True)
-    #plt.ylim(0,100)
+    plot.set(ylim = (-5,105))
                     
     file = p_dir + '\\global.png'
 
@@ -154,15 +187,31 @@ def global_sig(data, p_dir):
     plot.fig.clf()
     
 
-def positive_rate(data):
+def positive_rate(data, p_dir):
     data_base = data[(data['condition'] == 'baseline') |
                      (data['condition'] == 'lat_baseline')]
-
+    
     data_base_sig = data_base[data_base['global_significant'] == True]
 
     print(data_base_sig['positives'].describe())
     print(data_base_sig['type_I_ER'].describe())
-
+    
+    #plot distribution of positives
+    plot = sb.histplot(data = data_base,
+                   x = 'positives')
+    
+    quantile_95 = data_base['positives'].quantile(.95)
+    plot.axvline(quantile_95, ls='--')
+    
+    plt.xlabel('False Positives', fontsize = 14)
+    plt.ylabel('Count', fontsize = 14)
+    plt.xticks(fontsize = 12)
+    plt.yticks(fontsize = 12)
+    
+    file = p_dir + '\\GFWER.png'
+    plot.figure.savefig(file)
+    plot.figure.clf()
+    
 
 def determine_p_val():
     # SETUP
@@ -178,20 +227,20 @@ def determine_p_val():
 
         data = data[data['method'] == 'mt_w']
 
-        positive_rate(data)
+        #positive_rate(data,p_dir)
 
         # FDR
         data['FDR'] = data['FP']/data['positives']
 
         # asses p val calcualtion
-        p_val_metrics(data,p_dir)
+        
+        sb.set(font_scale = 1)
+        
+        # total_metrics(data,p_dir)
+        
+        total_metrics_avg(data, p_dir)
 
-        total_metrics(data,p_dir)
+        # global_sig(data, p_dir)
 
-        vars_metrics(data, p_dir)
-
-        global_sig(data, p_dir)
-
-        p_val_total(data, p_dir)
 
 determine_p_val()

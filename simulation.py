@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+@author: Alexandra Coroiu
+"""
+
 import numpy as np
 import mne
 import constants as c

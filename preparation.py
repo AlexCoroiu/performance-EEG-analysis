@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jun 14 15:36:41 2022
-
-@author: User
+@author: Alexandra Coroiu
 """
 
 import constants as c

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-
+"""
+@author: Alexandra Coroiu
+"""
 
 # setup
 import mne
@@ -242,8 +244,9 @@ def mne_avg(sphere, raws, epos, evos, exp_dir):
     
         avg_evos.append(avg_evo_cond)
         
+    avg_evos_conditions = dict(zip(c.CONDITIONS,avg_evos))
     #compare average evo for POz
-    [plot] = mne.viz.plot_compare_evokeds(avg_evos, picks = [electrode],
+    [plot] = mne.viz.plot_compare_evokeds(avg_evos_conditions, picks = [electrode],
                                           sphere = sphere,
                                           legend='upper left',
                                           show_sensors='upper right')

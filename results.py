@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jun 24 18:19:05 2022
-
-@author: User
-
+@author: Alexandra Coroiu
 """
 
 import file_manager as fm

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-
-@author: User
+@author: Alexandra Coroiu
 """
+
 import file_manager as fm
 import constants as c
 

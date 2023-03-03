@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jun 14 13:01:37 2022
-
-@author: User
+@author: Alexandra Coroiu
 """
 
 #setup
@@ -57,7 +55,7 @@ def crit_p_correction(results):
     windows = results['time'].unique()
     electrodes = results['channel'].unique()
     
-    crit_p = math.sqrt(c.SIGNIFICANCE/((len(windows)-1)*len(electrodes))) #!!!
+    crit_p = math.sqrt(c.SIGNIFICANCE/((len(windows)-1)*len(electrodes))) 
     results['crit_p_val'] = crit_p #save crit p value
     
     reject = [ p < crit_p for p in results['p_val']]

@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+@author: Alexandra Coroiu
+"""
 
 import mne
 import constants as c
