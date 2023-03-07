@@ -17,17 +17,21 @@ import results
 
 import pandas as pd
 
-# SIMULATE-ANALYSE-CUMMULATE DATA
+# CREATE DATA
+
+#simulate raw, process, prepare
 def run_data():
     simulation.simulate()
     processing.process()
     preparation.prepare()
-      
+
+#analyse with all methods
 def run_methods():
     multiple_testing.test_window()
     multiple_testing.test_bonferroni()
     cluster_permutations.test()
 
+#summarise analysis results
 def run_results():
     res_dfs = []
     res_dfs.append(results.results_mt_window())
@@ -39,6 +43,7 @@ def run_results():
     #print('res df\n', res)
     return res
     
+#create data for one dataset
 def run_dataset(amplitude, noise_filter, band_pass_filtering):
     
     #SETUP
@@ -61,7 +66,6 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
 
 #RUN ALL DATASETS
     
-#I think better here, to see celarly the role and workings of the setup functions
 amplitudes = [(40,20), (60,30), (60, 20), (80,40), (80,30), (80,20)] #mV (contra, ipsi)
 noise_filters = [(0.1,-0.1,0.02),(0.2,-0.2,0.04)] #infinite impulse response filter
 band_pass_filtering = [True,False]

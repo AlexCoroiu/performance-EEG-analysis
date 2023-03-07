@@ -8,6 +8,7 @@ import pandas as pd
 import file_manager as fm
 import processing as pross
 
+#prepare data for analysis
 def prepare_test_dfs(df, window_size, time, density, local):
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_time' + str(time) + '_dens' + str(density) + '_loc' + str(local)
@@ -39,7 +40,8 @@ def prepare_test_dfs(df, window_size, time, density, local):
         #save
         dataframe_file = dataset + '\\' + cond + '.csv'
         cond_df.to_csv(dataframe_file, index = False)
-    
+
+#load prepared data
 def load_test_dfs(window_size, time, density, local):
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_time' + str(time) + '_dens' + str(density) + '_loc' + str(local)
@@ -55,6 +57,7 @@ def load_test_dfs(window_size, time, density, local):
         
     return loaded
     
+#prepare all datasets
 def prepare():
     dataset = fm.PREPARATION_DIR 
     fm.do_dir(dataset)

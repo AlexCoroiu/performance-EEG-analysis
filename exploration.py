@@ -13,8 +13,9 @@ import seaborn as sb
 import matplotlib.pyplot as plt
 import processing
 
-# SIMULATION statistics: amplitude & latency (part + event var)
+#DATA PARAMETERS: amplitude & latency (participant & event level variability)
 
+#summary statistics
 def sim_var_statistics(data, exp_dir):
     
     exp_dir = exp_dir + '\\stats'
@@ -40,7 +41,7 @@ def sim_var_statistics(data, exp_dir):
     dataframe_file = exp_dir + '\\part_lvl.csv'
     df.to_csv(dataframe_file)
 
-    
+#plots  
 def sim_var_vizualization(data, exp_dir):
     exp_dir = exp_dir + '\\plots'
     fm.do_dir(exp_dir)
@@ -84,7 +85,7 @@ def sim_var_vizualization(data, exp_dir):
     fig.savefig(file)
     fig.clear()
     
-
+#exploration data parameters
 def explore_sim_variables(exp_dir):
     gen_vars = {'amplitude': c.AMP_VARS, 
                 'latency': c.LAT_VARS}
@@ -96,15 +97,7 @@ def explore_sim_variables(exp_dir):
         sim_var_statistics(data, var_dir)
         sim_var_vizualization(data, var_dir)
 
-#DATAFRAME statistics
-
-#population level 
-
-#participant level
-
-#condition level
-
-#VIZUALIZATION HELPERS
+#SIMUALTION RESULTS
 
 #sphere for topographies
 def make_topo_sphere(epoched): #digital montage for each participant
@@ -255,6 +248,7 @@ def mne_avg(sphere, raws, epos, evos, exp_dir):
     plot.savefig(file)
     plot.clf()
 
+#explore results
 def explore_mne(exp_dir):
     #raws
     raws = processing.load_raws()
@@ -278,6 +272,8 @@ def explore_mne(exp_dir):
     sphere = make_topo_sphere(epos[part_nr])
     mne_avg(sphere, raws, epos, evos, avg_dir)
     
+    
+#explore parameters and results for sepcific dataset
 def explore():
     #directory
     exp_dir = "exploration"

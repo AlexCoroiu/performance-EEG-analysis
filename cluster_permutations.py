@@ -12,6 +12,7 @@ import constants as c
 import preparation as prep
 
 
+#make electrode adjacency matrix
 def get_channel_adjacency(electrodes):
     #chnnel positions in 2D
     adjacency, channels = mne.channels.find_ch_adjacency(c.INFO, 'eeg')
@@ -24,6 +25,7 @@ def get_channel_adjacency(electrodes):
     return adjacency
 
 
+#run cluster permutation method
 def cluster_permutations(data):
     #get unique windows and electrodes from data
     windows = data['time'].unique()
@@ -33,7 +35,7 @@ def cluster_permutations(data):
     
     shape = (c.NR_PARTICIPANTS, nr_windows, nr_electrodes)
     
-    #channel adjacency matrix
+    #electrode adjacency matrix
     adjacency = get_channel_adjacency(electrodes)
 
     #from dataframe to NP multidimensional array
@@ -51,17 +53,16 @@ def cluster_permutations(data):
     #for each time x electrode
     #default treshold corresponding to 0.05 p-value
     
-
     t_stats, clusters, p_val_clusters, max_results = mne.stats.spatio_temporal_cluster_1samp_test(X = data_array, 
                                                                                                   adjacency = adjacency,
                                                                                                   out_type = 'mask')
-    
+   
     #print('Clusters\n', clusters)
     #print('P_vals\n', p_val_clusters)
     
     results = []
     
-    #id lists
+    #cluster id lists
     cluster_ids = range(len(clusters))
     
     for cluster_id in cluster_ids:
@@ -117,6 +118,7 @@ def cluster_permutations(data):
     return results_df
     
 
+#run method for a specific dataset
 def test_condition(window_size, time, density, local, cond):
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_time' + str(time) + '_dens' + str(density) + '_loc' + str(local)
@@ -133,7 +135,7 @@ def test_condition(window_size, time, density, local, cond):
     dataframe_file = dataset + '\\' + cond + '_cp.csv'
     results.to_csv(dataframe_file, index = False)
     
-
+#run for all datasets
 def test():       
     dataset = fm.ANALYSED_DIR
     fm.do_dir(dataset)

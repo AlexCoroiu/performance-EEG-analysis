@@ -12,6 +12,8 @@ import simulation as sim
 
 
 #SIMULATION FUNCTIONS
+
+#visualize ERP wave 
 def simulate_wave(times, latency, duration, f_band, viz_dir):
     time_latency = times - latency
     sinusoid = np.sin(2 * np.pi * f_band * time_latency)
@@ -47,6 +49,7 @@ def simulate_wave(times, latency, duration, f_band, viz_dir):
     plt.savefig(file)
     plt.clf()
 
+#visualize simulated data per participant
 def simulate_data(part_nr, viz_dir):
     
     #SIGNAL
@@ -105,8 +108,7 @@ def simulate_data(part_nr, viz_dir):
     plot.savefig(file)
     plot.clf()
 
-#vizualize       
-
+#vizualize for one specific dataset       
 def vizualize():
     #directory
     viz_dir = "vizualization"

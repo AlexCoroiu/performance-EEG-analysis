@@ -7,10 +7,10 @@ import numpy as np
 import mne
 import constants as c
 import file_manager as fm
-import matplotlib.pyplot as plt
-
 
 #SIMULATION FUNCTIONS
+
+#simulate ERP wave
 def simulate_wave(times, latency, duration, f_band):
     time_latency = times - latency
     sinusoid = np.sin(2 * np.pi * f_band * time_latency)
@@ -32,6 +32,7 @@ def simulate_wave(times, latency, duration, f_band):
     wave = 1e-10 * sinusoid * gf
     return wave
 
+#add 0 wave to baseline data
 def simulate_base(event, src_sim):
     waveform = simulate_wave(c.TIMES, c.BASE_LATENCY, 
                              c.BASE_DURATION, c.F_BAND)
@@ -39,7 +40,8 @@ def simulate_base(event, src_sim):
     src_sim.add_data(c.BASE_LABEL,
                      c.BASE_AMPLITUDE*waveform,
                      event)
-    
+
+#add ERP wave to visual stimulus data
 def simulate_activation(cond, event, src_sim, latency_var, amplitude_var):
     for hemi in range(2):
         region = c.ACTIVATIONS[cond][hemi][0]
@@ -67,6 +69,7 @@ def simulate_activation(cond, event, src_sim, latency_var, amplitude_var):
         
         #print(stimuli_side, hemi_side, hemi_latency, hemi_amplitude)    
 
+#simulate data for one participant
 def simulate_data(part_nr):
     
     #SIGNAL
@@ -113,6 +116,7 @@ def simulate_data(part_nr):
 
     return raw_sim
 
+#simulate data for all participants
 def simulate_raws():
     dataset = fm.RAWS_DIR
     fm.do_dir(dataset)

@@ -20,21 +20,26 @@ stats_vars = ['M', 'SD']
 
 
 #HELPING FUNCTIONS
+
+#load results dataframe
 def load_final_results():
     dataframe_file = 'results.csv'
     data = pd.read_csv(dataframe_file)
 
     return data
 
+#mean metrics type I,II ER
 def local_stats(data, var):
     #(mean, sd)
     return [data[var].mean(), data[var].std()]
 
+#mean FDRs
 def FDR_stats(data):
     data_positives = data[data['global_significant'] == True]
     data_positives['FDR'] = data_positives['FP']/data_positives['positives']
     return [data_positives['FDR'].mean(), data_positives['FDR'].std()]
 
+#calculate global type I,II ER
 def global_metrics(data):
     #(TN, FP, FN, TP, type_I_ER, type_II_ER)
     
@@ -43,6 +48,7 @@ def global_metrics(data):
                                           data['global_significant'])
     return (type_I_ER, type_II_ER)
 
+#split by data parameter value
 def split_data(data, var):
     vars_data = {}
     vals = data[var].unique()
@@ -241,7 +247,7 @@ def compare_vars_FDR_conds_local(stats_i_dir, mi_split, m_name, i):
                 d_stats_df.to_csv(dataframe_file)
  
     
-#plots for local tests: box plots, violin plots?
+#plots for local tests
 def plots_vars_conds_local(stats_i_dir, m_split, m_name, i):
     
     stats_plots_dir = stats_i_dir + '\\plots'
@@ -263,7 +269,7 @@ def plots_vars_conds_local(stats_i_dir, m_split, m_name, i):
 def cohen_d(data, popmean):
     return abs((data.mean() - popmean)/data.std())
 
-
+#test difference between data aprameter values
 def test_diff_conds_local(stats_i_dir, m_split, m_name, i):
     
     stats_tests_dir = stats_i_dir + '\\tests'
@@ -330,8 +336,6 @@ def test_diff_conds_local(stats_i_dir, m_split, m_name, i):
             dataframe_file = stats_tests_dir + '\\' + d + '_' + c_name + '.csv'
             d_matrix_df.to_csv(dataframe_file)
                     
-                                    
-
 #get statistics
 def get_stats(): 
     

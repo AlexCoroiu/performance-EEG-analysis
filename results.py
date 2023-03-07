@@ -10,6 +10,7 @@ import numpy as np
 import sklearn.metrics
 from ast import literal_eval
 
+#load analysed results
 def load_analysed(window_size, time, density, local, cond, method):
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_time' + str(time) + '_dens' + str(density) + '_loc' + str(local)
@@ -20,6 +21,7 @@ def load_analysed(window_size, time, density, local, cond, method):
               
     return analysed
 
+#define expected effects in multiple testing results
 def true_signal_mt(data, cond):
     #actual positive data units found in data
     if "baseline" in cond:
@@ -36,6 +38,7 @@ def true_signal_mt(data, cond):
 
     return expected
 
+#define expected effects in cluster permutation results 
 def true_signal_cp(data, cond):
     
     if "baseline" in cond:
@@ -52,6 +55,7 @@ def true_signal_cp(data, cond):
     
     return expected
 
+#calculate local performance metrics
 def get_metrics(expected, found):
 
     #confusion matrix    
@@ -77,7 +81,7 @@ def get_metrics(expected, found):
         
 #precision, recall and F1 dont make sense to emasure this dataset
 
-#do calcualtions and add to data
+#do calcualtions and add metrics to data
 def summary_results_mt(window_size,time,density,local,cond,method):
 
     analysed = load_analysed(window_size,time,density,local,cond,method)
@@ -105,7 +109,7 @@ def summary_results_mt(window_size,time,density,local,cond,method):
             TP_count, FP_count, TN_count, FN_count,
              type_I_error, type_II_error] 
 
-
+#do calcualtions and add metrics to sdata
 def summary_results_cp(window_size,time,density,local,cond):
     
     analysed = load_analysed(window_size,time,density,local,cond,'cp')
@@ -146,7 +150,7 @@ def summary_results_cp(window_size,time,density,local,cond):
 
         
     
-#multiple comaprisons results for all method params
+#multiple testing results for all datasets
 def results_mt(method):
     dataset = fm.DATA_DIR
     
@@ -182,7 +186,7 @@ def results_mt_bonferroni():
     return results_mt('mt_b')
 
     
-#cluster permutations results
+#cluster permutations results for all datasets
 def results_cp(): #redundant code but oh well
     dataset = fm.DATA_DIR
     

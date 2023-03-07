@@ -16,7 +16,6 @@ import file_manager as fm
 #test mean == 0, 2 sided
 #for each time x electrode
 #default treshold corresponding to 0.05 p-value
-
 def multiple_testing(data):
     #print('Data\n', data)
     #reshape data into (time x channel) on participant
@@ -39,7 +38,7 @@ def multiple_testing(data):
     #print('Results Indexed\n',results)
     return results
 
-    
+#bonferroni correction for critical p value
 def bonferroni(results):
     crit_p_val = c.SIGNIFICANCE/(len(results))
     results['crit_p_val'] = crit_p_val #save crit p value
@@ -50,7 +49,7 @@ def bonferroni(results):
 
     return results
     
-
+# Lubbe et al. (2014,2019) critical p value correction
 def crit_p_correction(results):
     windows = results['time'].unique()
     electrodes = results['channel'].unique()
@@ -63,7 +62,7 @@ def crit_p_correction(results):
     
     return results
 
-
+#succesive time window criterion
 def window(results):
     #crit p correction
     results = crit_p_correction(results)
@@ -114,6 +113,7 @@ def window(results):
 
     return results
 
+#test condition data with multiple testing
 def test_condition(window_size, time, density, local, cond, correction):         
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_time' + str(time) + '_dens' + str(density) + '_loc' + str(local)
@@ -139,7 +139,8 @@ def test_condition(window_size, time, density, local, cond, correction):
         #save
         dataframe_file = dataset + '\\' + cond + '_mt_w.csv'
         w_results.to_csv(dataframe_file, index = False)
-                
+
+#test all datasets with multiple testing                
 def test(correction):
     dataset = fm.ANALYSED_DIR
     fm.do_dir(dataset)

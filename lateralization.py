@@ -17,6 +17,8 @@ from ast import literal_eval
 pd.options.mode.chained_assignment = None  # default='warn'
 
 #PREPARE
+
+#channels by hemipshere
 CHANNELS_86_LEFT = ['Fp1',  
                     'AF9', 'AF7', 'AF5', 'AF3', 'AF1', 
                     'F9', 'F7', 'F5', 'F3', 'F1', 
@@ -27,7 +29,6 @@ CHANNELS_86_LEFT = ['Fp1',
                     'PO9', 'PO7', 'PO5', 'PO3', 'PO1', 
                     'O1',  
                     'O9' ]
-
 CHANNELS_86_RIGHT = ['Fp2', 
                     'AF10', 'AF8', 'AF6', 'AF4', 'AF2',
                     'F10', 'F8', 'F6', 'F4', 'F2', 
@@ -44,17 +45,20 @@ CHANNELS_86_PAIRS = list(zip(CHANNELS_86_LEFT, CHANNELS_86_RIGHT))
 LATERALIZATION = 'lateralization'
 conditions = ['baseline', 'vs']
 
+#get electrode pair
 def get_pair(row):
     channel = row['channel']
     pair = next(filter(lambda p: channel in p, CHANNELS_86_PAIRS), None)
     return pair
 
+#get hemisphere of electrode
 def get_hemi(row):
     channel = row['channel']
     nr = int(channel[-1])
     
     return 'left' if nr % 2 == 1 else 'right'
 
+#calculate alteralization betwen left and right hemipshere
 def get_lat(row):
     condition = row['condition']
     left = row['left']
@@ -69,12 +73,14 @@ def get_lat(row):
         
     return lat
 
+#check if correct pair
 def check_pair(row, electrodes):
     (left, right) = row['pair']
     
     return (left in electrodes) and (right in electrodes)
     #check if left & right are in electrodes
     
+#prepare lateralization dataset for analysis
 def prepare_test_df(df, window_size, time, density, local):
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_time' + str(time) + '_dens' + str(density) + '_loc' + str(local)
@@ -107,6 +113,7 @@ def prepare_test_df(df, window_size, time, density, local):
         dataframe_file = dataset + '\\lat_' + cond + '.csv'
         df_cond.to_csv(dataframe_file, index = False)
 
+#prepare all datasets
 def prepare():
     dataset = fm.PREPARATION_DIR 
     fm.do_dir(dataset)
@@ -155,7 +162,8 @@ def prepare():
                 for l in c.LOCAL:
                     print('...PREPARING',w, t, d, l )
                     prepare_test_df(df, w, t, d, l)
-                            
+
+#load prepared lateralization data
 def load_test_df(window_size, time, density, local):
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_time' + str(time) + '_dens' + str(density) + '_loc' + str(local)
@@ -172,6 +180,8 @@ def load_test_df(window_size, time, density, local):
     return loaded
          
 #ANALYZE    
+
+#analyse one lateralization dataset with all methods
 def test_lateralization(window_size, time, density, local, cond):         
     window_ms = int(window_size*1000)
     dir_name = 'win' + str(window_ms) + '_time' + str(time) + '_dens' + str(density) + '_loc' + str(local)
@@ -215,7 +225,8 @@ def test_lateralization(window_size, time, density, local, cond):
     #save
     dataframe_file = dataset + '\\lat_' + cond + '_cp.csv'
     cp_results.to_csv(dataframe_file, index = False)
-                
+    
+#analyse all datasets
 def test():
     dataset = fm.ANALYSED_DIR
     fm.do_dir(dataset)
@@ -328,7 +339,6 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
 
 #RUN ALL DATASETS
     
-#I think better here, to see celarly the role and workings of the setup functions
 amplitudes = [(40,20), (60,30), (60, 20), (80,40), (80,30), (80,20)] #mV (contra, ipsi)
 noise_filters = [(0.1,-0.1,0.02),(0.2,-0.2,0.04)] #infinite impulse response filter
 band_pass_filtering = [True,False]
@@ -365,8 +375,8 @@ def run():
     dataframe_file = 'results_lat.csv'
     results_df.to_csv(dataframe_file, index = False)
 
-#stats
-#get statistics
+#STATISTICS
+#load analysed results
 def load_final_results():
     dataframe_file = 'results_lat.csv'
     data = pd.read_csv(dataframe_file)
@@ -380,6 +390,7 @@ def load_final_results():
     
     return data
 
+#calcualte statistics on results
 def get_stats(): 
     
     # SETUP

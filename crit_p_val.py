@@ -14,6 +14,7 @@ processing_vars = ['window_size', 'time_interval', 'density', 'location']
 dependent_vars = ['type_I_ER', 'type_II_ER', 'FDR']
 stats_vars = ['M', 'SD']
 
+#effect of citical p value on performance metrics
 def p_val_metrics(data, p_dir):
     do_dir(p_dir)
     # plot scatter
@@ -34,6 +35,8 @@ def p_val_metrics(data, p_dir):
         plot.savefig(file)
         plot.fig.clf()
 
+
+#critical p value for each dataset size 
 def p_val_total(data, p_dir):
     do_dir(p_dir)
     
@@ -48,6 +51,7 @@ def p_val_total(data, p_dir):
 
     # print(min_tests,max_tests)
 
+    #new formula
     x = np.linspace(min_tests, max_tests, max_tests)
     #y = 2*np.sqrt(0.05/x)
     y = (1/2)*np.sqrt(0.05/x)
@@ -56,28 +60,7 @@ def p_val_total(data, p_dir):
     plot.savefig(file)
     plot.fig.clf()
     
-def vars_metrics(data, p_dir):
-    do_dir(p_dir)
-    # plot scatter
-    for i in processing_vars:
-        for d in dependent_vars:
-            plot = sb.lmplot(data=data,
-                             x='total', y=d,
-                             hue=i,  # hue or row
-                             col='condition',
-                             col_wrap=2,
-                             scatter=True,
-                             fit_reg=False,
-                             sharex=True,
-                             sharey=True)
-            file = p_dir + '\\scatter_' + d + '_' + i + '_conds.png'
-
-            for ax in plot.axes.flat:
-                ax.axhline(0.05, ls='--')
-
-            plot.savefig(file)
-            plot.fig.clf()
-
+#effect of dataset size on performance metrics
 def total_metrics(data, p_dir):
     do_dir(p_dir)
     # plot scatter
@@ -104,8 +87,32 @@ def total_metrics(data, p_dir):
 
 
         plot.savefig(file)
-        plot.fig.clf()
+        plot.fig.clf()    
+    
+#effect of dataset size on performance metrics per data parameter value
+def vars_metrics(data, p_dir):
+    do_dir(p_dir)
+    # plot scatter
+    for i in processing_vars:
+        for d in dependent_vars:
+            plot = sb.lmplot(data=data,
+                             x='total', y=d,
+                             hue=i,  # hue or row
+                             col='condition',
+                             col_wrap=2,
+                             scatter=True,
+                             fit_reg=False,
+                             sharex=True,
+                             sharey=True)
+            file = p_dir + '\\scatter_' + d + '_' + i + '_conds.png'
 
+            for ax in plot.axes.flat:
+                ax.axhline(0.05, ls='--')
+
+            plot.savefig(file)
+            plot.fig.clf()
+
+#the effect of dataset size on average performance metrics
 def total_metrics_avg(data, p_dir):
     do_dir(p_dir)
     # plot scatter
@@ -135,7 +142,7 @@ def total_metrics_avg(data, p_dir):
         plot.savefig(file)
         plot.fig.clf()
 
-
+#the effect of dataset size on global result
 def global_sig(data, p_dir):
     do_dir(p_dir)
     
@@ -186,7 +193,7 @@ def global_sig(data, p_dir):
     plot.savefig(file)
     plot.fig.clf()
     
-
+#the distribtuion of false positives across baselinbe data
 def positive_rate(data, p_dir):
     data_base = data[(data['condition'] == 'baseline') |
                      (data['condition'] == 'lat_baseline')]
@@ -212,7 +219,7 @@ def positive_rate(data, p_dir):
     plot.figure.savefig(file)
     plot.figure.clf()
     
-
+#explore the impact of datset size and critical p value calcualtion
 def determine_p_val():
     # SETUP
     # load final results

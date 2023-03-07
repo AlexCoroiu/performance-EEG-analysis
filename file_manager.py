@@ -125,10 +125,12 @@ DATA_POINTS = ""
 #analysis & results
 ANALYSED_DIR = ""
 
+#create directories for datasets
 def do_dir(dataset):
     if not os.path.exists(dataset):
         os.mkdir(dataset)
 
+#initial setup
 def set_up(amplitude, noise_filter, band_pass_filtering):
     
     dataset = ('data_amp' + str(amplitude[0]) + str(amplitude[1]) 

@@ -8,6 +8,7 @@ import constants as c
 import pandas as pd
 import file_manager as fm
 
+#load raw data
 def load_raws():
     dataset = fm.RAWS_DIR
     raws = []
@@ -22,6 +23,7 @@ def load_raws():
     
     return raws
     
+#epoch raw data
 def create_epos(raws):
     dataset = fm.EPOS_DIR
     fm.do_dir(dataset)
@@ -45,7 +47,7 @@ def create_epos(raws):
         
         epoched_part.save(epoched_file, overwrite = True)
 
-
+#load epoched data
 def load_epos():
     dataset = fm.EPOS_DIR
     epos = []
@@ -59,7 +61,7 @@ def load_epos():
     
     return epos
 
-    
+#create average evoked data from epoched data
 def create_evos(epos):
     dataset = fm.EVOS_DIR
     fm.do_dir(dataset)
@@ -78,6 +80,7 @@ def create_evos(epos):
         evoked_file = dataset + '\\' + part + '_ave.fif'
         mne.write_evokeds(evoked_file, evoked_part)
     
+#load evoked data
 def load_evos():
     dataset = fm.EVOS_DIR
     evos = []
@@ -91,6 +94,7 @@ def load_evos():
         
     return evos
 
+#concat evoked data of all participants into one dataframe
 def create_evo_df(evos):
     # (part, condition, time, electrode, value)
     dataset = fm.PROCESSING_DIR
@@ -123,7 +127,7 @@ def create_evo_df(evos):
     dataframe_file = dataset + '\\evo_concat_df' + '.csv'
     evo_dataframe.to_csv(dataframe_file, index = False)
     
-
+#load evoked dataframe
 def load_evo_df():
     dataset = fm.PROCESSING_DIR
     
@@ -133,7 +137,6 @@ def load_evo_df():
     return evo_dataframe
 
 #DATA PROCESSING
-
 def process():
     dataset = fm.PROCESSING_DIR
     fm.do_dir(dataset)
