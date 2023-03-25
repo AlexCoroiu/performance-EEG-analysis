@@ -78,7 +78,7 @@ def create_evos(epos):
             evoked_part.append(evoked_cond)
         
         evoked_file = dataset + '\\' + part + '_ave.fif'
-        mne.write_evokeds(evoked_file, evoked_part)
+        mne.write_evokeds(evoked_file, evoked_part, overwrite = True)
     
 #load evoked data
 def load_evos():

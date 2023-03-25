@@ -203,7 +203,7 @@ def test_lateralization(window_size, time, density, local, cond):
 
 
     #mt
-    mt_results = mt.multiple_comparison(data_cond)
+    mt_results = mt.multiple_testing(data_cond)
     
     #w
     w_results = mt.window(mt_results)
@@ -322,8 +322,8 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
     print('...RUNNING',amplitude, noise_filter, band_pass_filtering)
     
     #RUN 
-    #prepare()
-    #test()
+    prepare()
+    test()
     
     res_dfs = []
     res_dfs.append(results_mt_window())
@@ -456,5 +456,5 @@ def get_stats():
             #testats
             #stats.test_diff_conds_local(stats_i_dir, m_data, m_name, i)
 
-#run()
+run()
 get_stats()

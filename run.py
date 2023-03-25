@@ -56,8 +56,8 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
     print('...RUNNING', amplitude, noise_filter, band_pass_filtering)
 
     #RUN 
-    # run_data()
-    # run_methods()
+    run_data()
+    run_methods()
     res = run_results()
     
     return res
@@ -69,6 +69,7 @@ def run_dataset(amplitude, noise_filter, band_pass_filtering):
 amplitudes = [(40,20), (60,30), (60, 20), (80,40), (80,30), (80,20)] #mV (contra, ipsi)
 noise_filters = [(0.1,-0.1,0.02),(0.2,-0.2,0.04)] #infinite impulse response filter
 band_pass_filtering = [True,False]
+
 
 def run():
     results = []
