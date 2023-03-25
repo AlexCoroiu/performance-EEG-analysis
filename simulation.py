@@ -27,7 +27,7 @@ def simulate_wave(times, latency, duration, f_band):
     
     #if duration bigger than latency than you get a shift too much to the right
     
-    #!position of the gf compared to the sinusoid
+    #position of the gf compared to the sinusoid
 
     wave = 1e-10 * sinusoid * gf
     return wave

@@ -89,7 +89,7 @@ def total_metrics(data, p_dir):
         plot.savefig(file)
         plot.fig.clf()    
     
-#effect of dataset size on performance metrics per data parameter value
+#the effect of dataset size on performance metrics per data parameter value
 def vars_metrics(data, p_dir):
     do_dir(p_dir)
     # plot scatter

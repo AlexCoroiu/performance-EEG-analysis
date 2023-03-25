@@ -79,8 +79,6 @@ def get_metrics(expected, found):
     
     return (TN, FP, FN, TP, type_I_ER, type_II_ER)
         
-#precision, recall and F1 dont make sense to emasure this dataset
-
 #do calcualtions and add metrics to data
 def summary_results_mt(window_size,time,density,local,cond,method):
 

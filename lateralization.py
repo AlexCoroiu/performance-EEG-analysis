@@ -241,7 +241,7 @@ def test():
                     
 #RESULTS
 
-#multiple comaprisons results for all method params
+#multiple testing results for all datasets
 def results_mt(method):
     dataset = fm.DATA_DIR
     
@@ -381,7 +381,7 @@ def load_final_results():
     dataframe_file = 'results_lat.csv'
     data = pd.read_csv(dataframe_file)
     
-    #remove testats where no clusters were identified (and print)
+    #remove tests where no clusters were identified (and print)
     #print('NO CLUSTERS FORMED', (data[data['total'] == 0]).shape[0])
     
     #print(data.shape[0])
