@@ -1,4 +1,4 @@
-# TESTING THE SUCCESSIVE TIME WINDOW APPROACH USING SIMULATED EEG DATA
+# Comparing EEG Analysis Methods on Simulated Data
 
 This project is used to test the performance of the successive time window approach with a Monte Carlo simulation. The simulation covers a wide range of parameters that define EEG data properties like the signal-to-noise ratio, dimensionality, or dependencies. Synthetic EEG data is simulated from scratch and processed using the MNE Python library. The successive time window approach is compared against other common methods used in ERP studies. All these methods aim to correct the FWER as a means to solve the multiple testing problem that arises in explorative ERP studies. Their performance is measured in terms of specificity, sensitivity, and precision. 
 
